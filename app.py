@@ -45,12 +45,12 @@ if df_att.empty:
     df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 
 # Ambil PIN harian dari database
-current_pin = "1234" # Default fallback
+current_pin = "2026" # Default fallback PIN diubah ke 2026
 if not df_setting.empty and "Parameter" in df_setting.columns:
     pin_row = df_setting[df_setting["Parameter"] == "PIN_STUDIO"]
     if not pin_row.empty:
         raw_pin = str(pin_row.iloc[0]["Value"])
-        # Antisipasi kalau Google Sheets ngebaca angka jadi float (misal 1508.0)
+        # Antisipasi kalau Google Sheets ngebaca angka jadi float (misal 2026.0)
         if raw_pin.endswith('.0'):
             current_pin = raw_pin[:-2]
         else:
