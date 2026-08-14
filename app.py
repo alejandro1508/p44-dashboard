@@ -80,50 +80,69 @@ st.markdown("""
             50% { text-shadow: 0 0 20px rgba(129,146,100,0.8), 0 0 30px rgba(129,146,100,0.6); }
             100% { text-shadow: 0 0 5px rgba(129,146,100,0.2); }
         }
-        h3 {
+        h3.glow-title {
             animation: pulseGlow 3s infinite alternate !important;
             color: #2c3322 !important;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 20px;
         }
     </style>
 """, unsafe_allow_html=True)
 # --- END SUNTIKAN CSS ---
 
-# Logo
-col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
-with col_logo2:
-    st.image("logo.png", use_container_width=True)
-
-st.markdown("<h3 style='text-align: center; font-weight: 700; margin-bottom: 20px;'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
-st.divider()
-
-# DAFTAR NAMA ANGGOTA PROJECT 4/4
+# --- KONFIGURASI UTAMA ---
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
+TARGET_CUAN = 1500000  # <--- GANTI TARGET RUPIAH MINGGUAN DI SINI
 
-# Koneksi ke Google Sheets (ttl=0 biar data selalu real-time)
+# Koneksi ke Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 df_income = conn.read(worksheet="Pemasukan", usecols=[0, 1, 2], ttl=0).dropna(how="all")
 df_att = conn.read(worksheet="Absensi", usecols=[0, 1, 2, 3, 4], ttl=0).dropna(how="all")
 
-# Baca sheet Pengaturan buat PIN
 try:
     df_setting = conn.read(worksheet="Pengaturan", usecols=[0, 1], ttl=0).dropna(how="all")
 except:
-    st.error("⚠️ Sheet 'Pengaturan' belum dibuat di Google Sheets! Tolong buat dulu sesuai instruksi.")
+    st.error("⚠️ Sheet 'Pengaturan' belum dibuat di Google Sheets!")
     st.stop()
 
 if df_att.empty:
     df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 
+# Hitung Total Pemasukan awal buat Progress Bar
+total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
+
+# Logo & Judul
+col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
+with col_logo2:
+    st.image("logo.png", use_container_width=True)
+
+st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
+
+# --- FITUR BARU: PROGRESS BAR TARGET CUAN ---
+pct = min((total_income / TARGET_CUAN) * 100, 100) if TARGET_CUAN > 0 else 0
+is_gold = pct >= 100
+bar_color = "linear-gradient(90deg, #FFD700, #F5A623)" if is_gold else "linear-gradient(90deg, #819264, #A3B18A)"
+
+st.markdown(f"""
+<div style="padding: 20px; background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15); margin-bottom: 30px;">
+    <h4 style="margin: 0 0 10px 0; text-align: center; color: #2c3322;">🎯 TARGET MINGGUAN: Rp {TARGET_CUAN:,.0f}</h4>
+    <div style="background-color: rgba(0,0,0,0.1); border-radius: 10px; width: 100%; height: 25px;">
+        <div style="background: {bar_color}; width: {pct}%; height: 100%; border-radius: 10px; transition: width 1s ease-in-out;"></div>
+    </div>
+    <p style="text-align: center; margin: 10px 0 0 0; font-weight: 600; color: #2c3322; font-size: 16px;">Terkumpul: Rp {total_income:,.0f} ({pct:.1f}%)</p>
+</div>
+""", unsafe_allow_html=True)
+if is_gold and total_income > 0:
+    st.balloons() # Munculin balon otomatis kalau tembus target
+
 # Ambil PIN harian dari database
-current_pin = "2026" # Default fallback PIN
+current_pin = "2026"
 if not df_setting.empty and "Parameter" in df_setting.columns:
     pin_row = df_setting[df_setting["Parameter"] == "PIN_STUDIO"]
     if not pin_row.empty:
         raw_pin = str(pin_row.iloc[0]["Value"])
-        if raw_pin.endswith('.0'):
-            current_pin = raw_pin[:-2]
-        else:
-            current_pin = raw_pin.strip()
+        current_pin = raw_pin[:-2] if raw_pin.endswith('.0') else raw_pin.strip()
 
 # Deteksi siapa yang sedang live
 active_mask = df_att["Jam Keluar"].isna() | (df_att["Jam Keluar"] == "")
@@ -145,8 +164,6 @@ with col1:
             new_income = pd.DataFrame([{"Tanggal": now, "Keterangan": desc, "Nominal": amount}])
             updated_income = pd.concat([df_income, new_income], ignore_index=True)
             conn.update(worksheet="Pemasukan", data=updated_income)
-            st.balloons() 
-            st.success("Cuan berhasil dicatat!")
             st.rerun()
             
     st.markdown("**📜 5 Riwayat Pemasukan Terakhir**")
@@ -253,8 +270,6 @@ st.divider()
 # --- 4. KALKULASI BAGI HASIL ---
 st.subheader("💼 4. Hasil Bagi Hasil Mingguan")
 
-total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
-
 kas_studio = total_income * 0.30
 kas_ops = total_income * 0.20
 team_share = total_income * 0.50
@@ -284,6 +299,51 @@ for m in MEMBERS:
     })
 
 st.table(pd.DataFrame(result_data))
+
+# --- FITUR BARU: GENERATOR SLIP GAJI DIGITAL ---
+st.divider()
+st.subheader("🖨️ Generator Slip Gaji Digital")
+st.caption("Pilih nama untuk mencetak struk slip gaji estetik. Silakan di-screenshot dan kirim ke grup!")
+
+slip_name = st.selectbox("Cetak Slip Gaji Atas Nama:", MEMBERS)
+
+pts_slip = points_map.get(slip_name, 0)
+base_slip = base_per_person
+bonus_slip = pts_slip * val_per_point
+total_slip = base_slip + bonus_slip
+
+st.markdown(f"""
+<div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15); max-width: 400px; margin: 0 auto;">
+    <h4 style="text-align: center; margin-bottom: 5px; color: #2c3322;">🧾 SLIP GAJI PROJECT 4/4</h4>
+    <p style="text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;">Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <span style="font-weight: 500; color: #2c3322;">Nama Anggota:</span>
+        <span style="font-weight: 700; color: #2c3322;">{slip_name}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+        <span style="font-weight: 500; color: #2c3322;">Total Jam Live:</span>
+        <span style="font-weight: 700; color: #2c3322;">{pts_slip} Jam</span>
+    </div>
+    
+    <div style="border-bottom: 1px dashed #819264; margin-bottom: 15px;"></div>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <span style="font-weight: 500; color: #2c3322;">Upah Dasar:</span>
+        <span style="color: #2c3322;">Rp {base_slip:,.0f}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+        <span style="font-weight: 500; color: #2c3322;">Bonus Jam (Poin):</span>
+        <span style="color: #2c3322;">Rp {bonus_slip:,.0f}</span>
+    </div>
+    
+    <div style="background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;">
+        <h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">TOTAL CAIR</h3>
+        <h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">Rp {total_slip:,.0f}</h3>
+    </div>
+    <p style="text-align: center; font-size: 11px; color: #6a7a52; margin-top: 15px; margin-bottom: 0;">* Screenshot struk digital ini sebagai bukti sah</p>
+</div>
+""", unsafe_allow_html=True)
 
 st.divider()
 
