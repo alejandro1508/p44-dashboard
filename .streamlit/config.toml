@@ -1,0 +1,15 @@
+[theme]
+# Warna Aksen Utama (Diambil dari warna Hijau Olive di logo)
+primaryColor = "#819264"
+
+# Warna Background Utama (Diambil dari warna latar Krem di logo)
+backgroundColor = "#EAE3CD"
+
+# Warna Background Sekunder untuk kotak form (Krem yang sedikit lebih gelap biar ada batasnya)
+secondaryBackgroundColor = "#DFD7BD"
+
+# Warna Teks (Diambil dari warna Cokelat Gelap/Charcoal di logo)
+textColor = "#4A443D"
+
+# Font modern
+font = "sans serif"
