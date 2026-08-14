@@ -29,15 +29,34 @@ st.divider()
 # DAFTAR NAMA ANGGOTA PROJECT 4/4
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
 
-# Koneksi ke Google Sheets
+# Koneksi ke Google Sheets (ttl=0 biar data selalu real-time)
 conn = st.connection("gsheets", type=GSheetsConnection)
-df_income = conn.read(worksheet="Pemasukan", usecols=[0, 1, 2]).dropna(how="all")
-df_att = conn.read(worksheet="Absensi", usecols=[0, 1, 2, 3, 4]).dropna(how="all")
+df_income = conn.read(worksheet="Pemasukan", usecols=[0, 1, 2], ttl=0).dropna(how="all")
+df_att = conn.read(worksheet="Absensi", usecols=[0, 1, 2, 3, 4], ttl=0).dropna(how="all")
+
+# Baca sheet Pengaturan buat PIN
+try:
+    df_setting = conn.read(worksheet="Pengaturan", usecols=[0, 1], ttl=0).dropna(how="all")
+except:
+    st.error("⚠️ Sheet 'Pengaturan' belum dibuat di Google Sheets! Tolong buat dulu sesuai instruksi.")
+    st.stop()
 
 if df_att.empty:
     df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 
-# Deteksi siapa yang sedang live (Jam Keluar kosong)
+# Ambil PIN harian dari database
+current_pin = "1234" # Default fallback
+if not df_setting.empty and "Parameter" in df_setting.columns:
+    pin_row = df_setting[df_setting["Parameter"] == "PIN_STUDIO"]
+    if not pin_row.empty:
+        raw_pin = str(pin_row.iloc[0]["Value"])
+        # Antisipasi kalau Google Sheets ngebaca angka jadi float (misal 1508.0)
+        if raw_pin.endswith('.0'):
+            current_pin = raw_pin[:-2]
+        else:
+            current_pin = raw_pin.strip()
+
+# Deteksi siapa yang sedang live
 active_mask = df_att["Jam Keluar"].isna() | (df_att["Jam Keluar"] == "")
 df_active = df_att[active_mask]
 active_names = df_active["Nama"].tolist() if not df_active.empty else []
@@ -57,21 +76,20 @@ with col1:
             new_income = pd.DataFrame([{"Tanggal": now, "Keterangan": desc, "Nominal": amount}])
             updated_income = pd.concat([df_income, new_income], ignore_index=True)
             conn.update(worksheet="Pemasukan", data=updated_income)
-            st.balloons() # Animasi Hujan Balon
+            st.balloons() 
             st.success("Cuan berhasil dicatat!")
             st.rerun()
             
     # Tabel History Pemasukan Terakhir
     st.markdown("**📜 5 Riwayat Pemasukan Terakhir**")
     if not df_income.empty:
-        # Ambil 5 data terbawah, balik urutannya biar yang terbaru di atas
         df_history = df_income.tail(5).iloc[::-1].copy()
         df_history["Nominal"] = pd.to_numeric(df_history["Nominal"], errors='coerce').fillna(0).apply(lambda x: f"Rp {x:,.0f}")
         st.dataframe(df_history, use_container_width=True, hide_index=True)
     else:
         st.caption("Belum ada data pemasukan tercatat.")
 
-# --- 2. FORM ABSENSI OTOMATIS ---
+# --- 2. FORM ABSENSI OTOMATIS (PAKAI PIN) ---
 with col2:
     st.subheader("⏱️ 2. Absen Otomatis")
     
@@ -80,32 +98,40 @@ with col2:
     else:
         st.info("⚪ Studio sedang kosong (Belum ada Live).")
         
-    action = st.radio("Pilih Mode:", ["Absen Masuk", "Akhiri Live (Master)"], horizontal=True)
+    action = st.radio("Pilih Mode:", ["Absen Masuk", "Akhiri Live (Semua)"], horizontal=True)
     
     if action == "Absen Masuk":
         with st.form("form_masuk"):
             available_members = [m for m in MEMBERS if m not in active_names]
             if available_members:
-                name_in = st.selectbox("Siapa yang baru gabung?", available_members)
+                name_in = st.selectbox("Siapa yang mau absen?", available_members)
+                pin_in = st.text_input("PIN Studio Hari Ini", type="password", placeholder="Tanya Ale / Lihat di Papan")
                 submit_in = st.form_submit_button("Mulai Jam Live")
+                
                 if submit_in:
-                    now_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
-                    new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": name_in, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
-                    updated_att = pd.concat([df_att, new_att], ignore_index=True)
-                    conn.update(worksheet="Absensi", data=updated_att)
-                    st.success(f"{name_in} resmi masuk live!")
-                    st.rerun()
+                    if pin_in != current_pin:
+                        st.error("❌ PIN Salah! Nggak bisa nitip absen dari jauh bos.")
+                    else:
+                        now_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+                        new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": name_in, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
+                        updated_att = pd.concat([df_att, new_att], ignore_index=True)
+                        conn.update(worksheet="Absensi", data=updated_att)
+                        st.success(f"✅ {name_in} resmi masuk live!")
+                        st.rerun()
             else:
                 st.write("Semua tim sudah berada di dalam Live!")
                 st.form_submit_button("Mulai Jam Live", disabled=True)
                 
     else:
         with st.form("form_keluar"):
-            st.warning("⚠️ Perhatian: Tombol ini akan menghentikan waktu & menghitung poin otomatis untuk SEMUA orang yang sedang live saat ini.")
+            st.warning("⚠️ Perhatian: Ini akan menghentikan waktu & menghitung poin otomatis untuk SEMUA orang yang sedang live.")
+            pin_out = st.text_input("PIN Studio Hari Ini", type="password", placeholder="Wajib pakai PIN")
             submit_out = st.form_submit_button("Selesai & Hitung Poin!")
             
             if submit_out:
-                if active_names:
+                if pin_out != current_pin:
+                    st.error("❌ PIN Salah!")
+                elif active_names:
                     now_dt = datetime.now(tz)
                     now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                     
@@ -117,16 +143,15 @@ with col2:
                                 continue
                             masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                             
-                            # Hitung selisih durasi dalam bentuk jam
                             diff_hours = (now_dt - masuk_dt).total_seconds() / 3600.0
-                            poin = round(diff_hours, 1) # Dibulatkan 1 desimal
+                            poin = round(diff_hours, 1) 
                             
                             df_att.at[idx, "Jam Keluar"] = now_str
                             df_att.at[idx, "Poin"] = poin
                             
                     conn.update(worksheet="Absensi", data=df_att)
-                    st.snow() # Animasi Salju pas Live Kelar
-                    st.success("Live selesai! Poin otomatis dihitung.")
+                    st.snow() 
+                    st.success("✅ Live selesai! Poin otomatis dihitung.")
                     st.rerun()
                 else:
                     st.error("Tidak ada orang yang sedang live.")
@@ -144,7 +169,6 @@ for m in MEMBERS:
     if m not in points_map:
         points_map[m] = 0.0
 
-# Cari MVP (Poin Tertinggi)
 mvp_name = max(points_map, key=points_map.get) if points_map else MEMBERS[0]
 mvp_points = points_map.get(mvp_name, 0)
 
@@ -192,3 +216,32 @@ for m in MEMBERS:
     })
 
 st.table(pd.DataFrame(result_data))
+
+st.divider()
+
+# --- 5. PANEL ADMIN KHUSUS ALE ---
+st.subheader("⚙️ Panel Admin (Rahasia)")
+with st.expander("Klik untuk Ganti PIN Studio Harian"):
+    st.caption("Ubah PIN ini sesuka lu tiap hari, lalu tulis di papan tulis. Hanya lu yang tau Password Master-nya.")
+    with st.form("form_ganti_pin"):
+        new_pin_input = st.text_input("Masukkan PIN Studio Baru", placeholder="Contoh: 9999")
+        # PASSWORD MASTER KHUSUS ALE
+        master_pass_input = st.text_input("Password Master", type="password", placeholder="Masukkan Password Ale")
+        submit_new_pin = st.form_submit_button("Update PIN Database")
+        
+        if submit_new_pin:
+            # Password master hardcoded biar aman
+            if master_pass_input == "ALE1508": 
+                if "Parameter" in df_setting.columns:
+                    idx = df_setting.index[df_setting["Parameter"] == "PIN_STUDIO"].tolist()
+                    if idx:
+                        df_setting.at[idx[0], "Value"] = new_pin_input
+                    else:
+                        new_row = pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])
+                        df_setting = pd.concat([df_setting, new_row], ignore_index=True)
+                    
+                    conn.update(worksheet="Pengaturan", data=df_setting)
+                    st.success(f"✅ PIN Studio berhasil diubah jadi {new_pin_input}!")
+                    st.rerun()
+            else:
+                st.error("❌ Password Master Salah!")
