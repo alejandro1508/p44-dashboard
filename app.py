@@ -105,7 +105,7 @@ with col2:
             available_members = [m for m in MEMBERS if m not in active_names]
             if available_members:
                 name_in = st.selectbox("Siapa yang mau absen?", available_members)
-                pin_in = st.text_input("PIN Studio Hari Ini", type="password", placeholder="Tanya Ale / Lihat di Papan")
+                pin_in = st.text_input("PIN Studio Hari Ini", type="password", placeholder="Lihat di Papan Tulis")
                 submit_in = st.form_submit_button("Mulai Jam Live")
                 
                 if submit_in:
@@ -174,7 +174,7 @@ mvp_points = points_map.get(mvp_name, 0)
 
 c1, c2 = st.columns([1, 2])
 with c1:
-    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 Gacor parah!")
+    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 GOKSS!!")
 
 with c2:
     chart_data = pd.DataFrame(list(points_map.items()), columns=["Anggota", "Total Jam"]).set_index("Anggota")
@@ -220,13 +220,13 @@ st.table(pd.DataFrame(result_data))
 st.divider()
 
 # --- 5. PANEL ADMIN KHUSUS ALE ---
-st.subheader("⚙️ Panel Admin (Rahasia)")
+st.subheader("⚙️ Panel Admin")
 with st.expander("Klik untuk Ganti PIN Studio Harian"):
-    st.caption("Ubah PIN ini sesuka lu tiap hari, lalu tulis di papan tulis. Hanya lu yang tau Password Master-nya.")
+    st.caption("Ubah PIN")
     with st.form("form_ganti_pin"):
         new_pin_input = st.text_input("Masukkan PIN Studio Baru", placeholder="Contoh: 9999")
-        # PASSWORD MASTER KHUSUS ALE
-        master_pass_input = st.text_input("Password Master", type="password", placeholder="Masukkan Password Ale")
+        # PASSWORD MASTER KHUSUS 
+        master_pass_input = st.text_input("Password Master", type="password", placeholder="Masukkan Password")
         submit_new_pin = st.form_submit_button("Update PIN Database")
         
         if submit_new_pin:
