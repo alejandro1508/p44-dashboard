@@ -3,6 +3,7 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 import pytz
+import base64
 
 # Zona waktu Indonesia (WIB)
 tz = pytz.timezone('Asia/Jakarta')
@@ -91,6 +92,52 @@ st.markdown("""
 """, unsafe_allow_html=True)
 # --- END SUNTIKAN CSS ---
 
+# --- FITUR BARU: FLOATING LOGO (WATERMARK TETAP MUNCUL SAAT SCROLL) ---
+def render_floating_logo():
+    try:
+        with open("logo.png", "rb") as f:
+            data = f.read()
+        b64_logo = base64.b64encode(data).decode()
+        st.markdown(f"""
+            <style>
+            .floating-logo {{
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                width: 70px;
+                height: 70px;
+                object-fit: cover;
+                border-radius: 50%;
+                box-shadow: 0 8px 25px rgba(129, 146, 100, 0.4);
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 2px solid rgba(255, 255, 255, 0.5);
+                z-index: 99999;
+                transition: all 0.3s ease;
+            }}
+            .floating-logo:hover {{
+                transform: scale(1.1);
+                box-shadow: 0 12px 30px rgba(129, 146, 100, 0.6);
+            }}
+            /* Di HP ukurannya dikecilin dikit biar ga nutupin teks */
+            @media (max-width: 768px) {{
+                .floating-logo {{
+                    width: 55px;
+                    height: 55px;
+                    bottom: 20px;
+                    right: 20px;
+                }}
+            }}
+            </style>
+            <img src="data:image/png;base64,{b64_logo}" class="floating-logo">
+        """, unsafe_allow_html=True)
+    except:
+        pass
+
+# Eksekusi logo ngambang
+render_floating_logo()
+
 # --- KONFIGURASI UTAMA ---
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
 TARGET_CUAN = 1500000  # <--- Target Rupiah Mingguan
@@ -109,17 +156,16 @@ except:
 if df_att.empty:
     df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 
-# Hitung Total Pemasukan awal buat Progress Bar
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
-# Logo & Judul
+# Logo Utama Tengah (Ini yg scroll ilang)
 col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
 with col_logo2:
     st.image("logo.png", use_container_width=True)
 
 st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
 
-# --- FITUR BARU: PROGRESS BAR TARGET CUAN ---
+# --- PROGRESS BAR TARGET CUAN ---
 pct = min((total_income / TARGET_CUAN) * 100, 100) if TARGET_CUAN > 0 else 0
 is_gold = pct >= 100
 bar_color = "linear-gradient(90deg, #FFD700, #F5A623)" if is_gold else "linear-gradient(90deg, #819264, #A3B18A)"
@@ -136,7 +182,6 @@ st.markdown(f"""
 if is_gold and total_income > 0:
     st.balloons() 
 
-# Ambil PIN harian dari database
 current_pin = "2026"
 if not df_setting.empty and "Parameter" in df_setting.columns:
     pin_row = df_setting[df_setting["Parameter"] == "PIN_STUDIO"]
@@ -144,7 +189,6 @@ if not df_setting.empty and "Parameter" in df_setting.columns:
         raw_pin = str(pin_row.iloc[0]["Value"])
         current_pin = raw_pin[:-2] if raw_pin.endswith('.0') else raw_pin.strip()
 
-# Deteksi siapa yang sedang live
 active_mask = df_att["Jam Keluar"].isna() | (df_att["Jam Keluar"] == "")
 df_active = df_att[active_mask]
 active_names = df_active["Nama"].tolist() if not df_active.empty else []
