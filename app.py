@@ -47,7 +47,6 @@ st.markdown("""
             transition: all 0.3s ease-in-out !important;
         }
 
-        /* Efek Kotak Melayang (Hover) */
         [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 40px 0 rgba(129, 146, 100, 0.25) !important;
@@ -59,7 +58,6 @@ st.markdown("""
             box-shadow: 0 0 0 1px #819264 !important;
         }
         
-        /* Tombol Premium */
         .stButton > button {
             background-color: #819264 !important;
             color: white !important;
@@ -86,57 +84,61 @@ st.markdown("""
             color: #2c3322 !important;
             text-align: center;
             font-weight: 700;
+            margin-top: 30px; 
             margin-bottom: 20px;
+        }
+        
+        /* Geser area kerja ke bawah dikit biar ga nabrak logo fixed */
+        .block-container {
+            padding-top: 60px !important;
         }
     </style>
 """, unsafe_allow_html=True)
-# --- END SUNTIKAN CSS ---
 
-# --- FITUR BARU: FLOATING LOGO (WATERMARK TETAP MUNCUL SAAT SCROLL) ---
-def render_floating_logo():
+# --- FITUR BARU: DYNAMIC ISLAND LOGO (TENGAH ATAS & FIXED) ---
+def render_fixed_center_logo():
     try:
         with open("logo.png", "rb") as f:
             data = f.read()
         b64_logo = base64.b64encode(data).decode()
         st.markdown(f"""
             <style>
-            .floating-logo {{
+            .dynamic-island {{
                 position: fixed;
-                bottom: 30px;
-                right: 30px;
-                width: 70px;
-                height: 70px;
-                object-fit: cover;
-                border-radius: 50%;
-                box-shadow: 0 8px 25px rgba(129, 146, 100, 0.4);
+                top: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 999999;
                 background: rgba(255, 255, 255, 0.7);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                border: 2px solid rgba(255, 255, 255, 0.5);
-                z-index: 99999;
-                transition: all 0.3s ease;
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                padding: 6px 25px;
+                border-radius: 50px;
+                box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
             }}
-            .floating-logo:hover {{
-                transform: scale(1.1);
-                box-shadow: 0 12px 30px rgba(129, 146, 100, 0.6);
+            .dynamic-island img {{
+                height: 35px; /* Kompak di HP */
+                object-fit: contain;
             }}
-            /* Di HP ukurannya dikecilin dikit biar ga nutupin teks */
-            @media (max-width: 768px) {{
-                .floating-logo {{
-                    width: 55px;
-                    height: 55px;
-                    bottom: 20px;
-                    right: 20px;
+            @media (min-width: 768px) {{
+                .dynamic-island img {{
+                    height: 45px; /* Agak besar di Laptop */
                 }}
             }}
             </style>
-            <img src="data:image/png;base64,{b64_logo}" class="floating-logo">
+            <div class="dynamic-island">
+                <img src="data:image/png;base64,{b64_logo}" alt="Project 4/4">
+            </div>
         """, unsafe_allow_html=True)
     except:
         pass
 
-# Eksekusi logo ngambang
-render_floating_logo()
+# Eksekusi logo melayang di tengah
+render_fixed_center_logo()
 
 # --- KONFIGURASI UTAMA ---
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
@@ -156,12 +158,8 @@ except:
 if df_att.empty:
     df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 
+# Hitung Total Pemasukan
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
-
-# Logo Utama Tengah (Ini yg scroll ilang)
-col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
-with col_logo2:
-    st.image("logo.png", use_container_width=True)
 
 st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
 
@@ -182,6 +180,7 @@ st.markdown(f"""
 if is_gold and total_income > 0:
     st.balloons() 
 
+# Ambil PIN harian
 current_pin = "2026"
 if not df_setting.empty and "Parameter" in df_setting.columns:
     pin_row = df_setting[df_setting["Parameter"] == "PIN_STUDIO"]
@@ -189,13 +188,14 @@ if not df_setting.empty and "Parameter" in df_setting.columns:
         raw_pin = str(pin_row.iloc[0]["Value"])
         current_pin = raw_pin[:-2] if raw_pin.endswith('.0') else raw_pin.strip()
 
+# Deteksi live
 active_mask = df_att["Jam Keluar"].isna() | (df_att["Jam Keluar"] == "")
 df_active = df_att[active_mask]
 active_names = df_active["Nama"].tolist() if not df_active.empty else []
 
 col1, col2 = st.columns(2)
 
-# --- 1. FORM PEMASUKAN & HISTORY ---
+# --- 1. FORM PEMASUKAN ---
 with col1:
     st.subheader("💰 1. Input Pemasukan")
     with st.form("form_income"):
@@ -210,22 +210,20 @@ with col1:
             conn.update(worksheet="Pemasukan", data=updated_income)
             st.rerun()
             
-    st.markdown("**📜 5 Riwayat Pemasukan Terakhir**")
+    st.markdown("**📜 Riwayat Pemasukan**")
     if not df_income.empty:
         df_history = df_income.tail(5).iloc[::-1].copy()
         df_history["Nominal"] = pd.to_numeric(df_history["Nominal"], errors='coerce').fillna(0).apply(lambda x: f"Rp {x:,.0f}")
         st.dataframe(df_history, use_container_width=True, hide_index=True)
-    else:
-        st.caption("Belum ada data pemasukan tercatat.")
 
-# --- 2. FORM ABSENSI OTOMATIS (PAKAI PIN) ---
+# --- 2. FORM ABSENSI ---
 with col2:
     st.subheader("⏱️ 2. Absen Otomatis")
     
     if active_names:
         st.info(f"🔴 Sedang Live: **{', '.join(active_names)}**")
     else:
-        st.info("⚪ Studio sedang kosong (Belum ada Live).")
+        st.info("⚪ Studio kosong.")
         
     action = st.radio("Pilih Mode:", ["Absen Masuk", "Akhiri Live (Semua)"], horizontal=True)
     
@@ -233,13 +231,13 @@ with col2:
         with st.form("form_masuk"):
             available_members = [m for m in MEMBERS if m not in active_names]
             if available_members:
-                name_in = st.selectbox("Siapa yang mau absen?", available_members)
-                pin_in = st.text_input("PIN Studio Hari Ini", type="password", placeholder="Lihat di Papan Tulis")
+                name_in = st.selectbox("Siapa yang absen?", available_members)
+                pin_in = st.text_input("PIN Hari Ini", type="password")
                 submit_in = st.form_submit_button("Mulai Jam Live")
                 
                 if submit_in:
                     if pin_in != current_pin:
-                        st.error("❌ PIN Salah! Cek lagi di papan tulis.")
+                        st.error("❌ PIN Salah!")
                     else:
                         now_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
                         new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": name_in, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
@@ -248,13 +246,12 @@ with col2:
                         st.success(f"✅ {name_in} resmi masuk live!")
                         st.rerun()
             else:
-                st.write("Semua tim sudah berada di dalam Live!")
                 st.form_submit_button("Mulai Jam Live", disabled=True)
                 
     else:
         with st.form("form_keluar"):
-            st.warning("⚠️ Perhatian: Ini akan menghentikan waktu & menghitung poin otomatis untuk SEMUA orang yang sedang live.")
-            pin_out = st.text_input("PIN Studio Hari Ini", type="password", placeholder="Wajib pakai PIN")
+            st.warning("⚠️ Menghentikan waktu untuk SEMUA yang sedang live.")
+            pin_out = st.text_input("PIN Hari Ini", type="password")
             submit_out = st.form_submit_button("Selesai & Hitung Poin!")
             
             if submit_out:
@@ -271,23 +268,17 @@ with col2:
                             except:
                                 continue
                             masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
-                            
                             diff_hours = (now_dt - masuk_dt).total_seconds() / 3600.0
-                            poin = round(diff_hours, 1) 
-                            
                             df_att.at[idx, "Jam Keluar"] = now_str
-                            df_att.at[idx, "Poin"] = poin
+                            df_att.at[idx, "Poin"] = round(diff_hours, 1) 
                             
                     conn.update(worksheet="Absensi", data=df_att)
                     st.snow() 
-                    st.success("✅ Live selesai! Poin otomatis dihitung.")
                     st.rerun()
-                else:
-                    st.error("Tidak ada orang yang sedang live.")
 
 st.divider()
 
-# --- 3. STATISTIK & GRAFIK ---
+# --- 3. STATISTIK ---
 st.subheader("📊 3. Statistik & Leaderboard")
 
 df_att["Poin"] = pd.to_numeric(df_att["Poin"], errors='coerce').fillna(0)
@@ -311,8 +302,8 @@ with c2:
 
 st.divider()
 
-# --- 4. KALKULASI BAGI HASIL ---
-st.subheader("💼 4. Hasil Bagi Hasil Mingguan")
+# --- 4. KALKULASI ---
+st.subheader("💼 4. Hasil Bagi Hasil")
 
 kas_studio = total_income * 0.30
 kas_ops = total_income * 0.20
@@ -320,9 +311,9 @@ team_share = total_income * 0.50
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Total Pemasukan", f"Rp {total_income:,.0f}")
-m2.metric("🏢 Kas Studio (30%)", f"Rp {kas_studio:,.0f}")
-m3.metric("☕ Ops/Makan (20%)", f"Rp {kas_ops:,.0f}")
-m4.metric("👥 Jatah Tim (50%)", f"Rp {team_share:,.0f}")
+m2.metric("🏢 Kas Studio", f"Rp {kas_studio:,.0f}")
+m3.metric("☕ Ops/Makan", f"Rp {kas_ops:,.0f}")
+m4.metric("👥 Jatah Tim", f"Rp {team_share:,.0f}")
 
 base_pool = team_share * 0.40
 base_per_person = (base_pool / len(MEMBERS)) if total_income > 0 else 0
@@ -333,23 +324,19 @@ result_data = []
 for m in MEMBERS:
     pts = points_map[m]
     total_earned = base_per_person + (pts * val_per_point)
-    is_mvp = " 👑" if m == mvp_name and pts > 0 else ""
     result_data.append({
-        "Anggota": f"{m}{is_mvp}",
+        "Anggota": f"{m}{' 👑' if m == mvp_name and pts > 0 else ''}",
         "Poin Jam": f"{pts} Jam",
-        "Tugas Dasar": f"Rp {base_per_person:,.0f}",
-        "Uang Poin Live": f"Rp {pts * val_per_point:,.0f}",
+        "Upah Dasar": f"Rp {base_per_person:,.0f}",
+        "Bonus Jam": f"Rp {pts * val_per_point:,.0f}",
         "TOTAL CAIR": f"Rp {total_earned:,.0f}"
     })
-
 st.table(pd.DataFrame(result_data))
 
-# --- FITUR BARU: GENERATOR SLIP GAJI DIGITAL ---
+# --- SLIP GAJI ---
 st.divider()
 st.subheader("🖨️ Generator Slip Gaji Digital")
-st.caption("Pilih nama untuk mencetak struk slip gaji estetik. Silakan di-screenshot dan kirim ke grup!")
-
-slip_name = st.selectbox("Cetak Slip Gaji Atas Nama:", MEMBERS)
+slip_name = st.selectbox("Cetak Struk Atas Nama:", MEMBERS)
 
 pts_slip = points_map.get(slip_name, 0)
 base_slip = base_per_person
@@ -357,42 +344,35 @@ bonus_slip = pts_slip * val_per_point
 total_slip = base_slip + bonus_slip
 
 html_slip = f"""
-<div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15); max-width: 400px; margin: 0 auto;">
-<h4 style="text-align: center; margin-bottom: 5px; color: #2c3322;">🧾 SLIP GAJI PROJECT 4/4</h4>
+<div style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; max-width: 400px; margin: 0 auto; box-shadow: 0 8px 32px rgba(129, 146, 100, 0.15);">
+<h4 style="text-align: center; margin: 0 0 5px 0; color: #2c3322;">🧾 SLIP GAJI PROJECT 4/4</h4>
 <p style="text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;">Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p>
-<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="font-weight: 500; color: #2c3322;">Nama Anggota:</span><span style="font-weight: 700; color: #2c3322;">{slip_name}</span></div>
-<div style="display: flex; justify-content: space-between; margin-bottom: 15px;"><span style="font-weight: 500; color: #2c3322;">Total Jam Live:</span><span style="font-weight: 700; color: #2c3322;">{pts_slip} Jam</span></div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="font-weight: 500; color: #2c3322;">Nama:</span><span style="font-weight: 700; color: #2c3322;">{slip_name}</span></div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 15px;"><span style="font-weight: 500; color: #2c3322;">Jam Live:</span><span style="font-weight: 700; color: #2c3322;">{pts_slip} Jam</span></div>
 <div style="border-bottom: 1px dashed #819264; margin-bottom: 15px;"></div>
 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="font-weight: 500; color: #2c3322;">Upah Dasar:</span><span style="color: #2c3322;">Rp {base_slip:,.0f}</span></div>
-<div style="display: flex; justify-content: space-between; margin-bottom: 15px;"><span style="font-weight: 500; color: #2c3322;">Bonus Jam (Poin):</span><span style="color: #2c3322;">Rp {bonus_slip:,.0f}</span></div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 15px;"><span style="font-weight: 500; color: #2c3322;">Bonus (Poin):</span><span style="color: #2c3322;">Rp {bonus_slip:,.0f}</span></div>
 <div style="background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;"><h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">TOTAL CAIR</h3><h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">Rp {total_slip:,.0f}</h3></div>
-<p style="text-align: center; font-size: 11px; color: #6a7a52; margin-top: 15px; margin-bottom: 0;">* Screenshot struk digital ini sebagai bukti sah</p>
+<p style="text-align: center; font-size: 11px; color: #6a7a52; margin-top: 15px; margin-bottom: 0;">* Sah secara sistem Project 4/4</p>
 </div>
 """
 st.markdown(html_slip, unsafe_allow_html=True)
 
 st.divider()
 
-# --- 5. PANEL ADMIN ---
+# --- ADMIN ---
 st.subheader("⚙️ Panel Admin")
-with st.expander("Ganti PIN Studio Harian"):
+with st.expander("Ganti PIN Harian"):
     with st.form("form_ganti_pin"):
-        new_pin_input = st.text_input("Masukkan PIN Studio Baru", placeholder="Contoh: 9999")
-        master_pass_input = st.text_input("Password Master", type="password", placeholder="Masukkan Password Admin")
-        submit_new_pin = st.form_submit_button("Update PIN")
-        
-        if submit_new_pin:
+        new_pin_input = st.text_input("PIN Baru", placeholder="Contoh: 9999")
+        master_pass_input = st.text_input("Password Admin", type="password")
+        if st.form_submit_button("Update PIN"):
             if master_pass_input == "ALE1508": 
                 if "Parameter" in df_setting.columns:
                     idx = df_setting.index[df_setting["Parameter"] == "PIN_STUDIO"].tolist()
-                    if idx:
-                        df_setting.at[idx[0], "Value"] = new_pin_input
-                    else:
-                        new_row = pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])
-                        df_setting = pd.concat([df_setting, new_row], ignore_index=True)
-                    
+                    if idx: df_setting.at[idx[0], "Value"] = new_pin_input
+                    else: df_setting = pd.concat([df_setting, pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])], ignore_index=True)
                     conn.update(worksheet="Pengaturan", data=df_setting)
-                    st.success(f"✅ PIN Studio berhasil diubah jadi {new_pin_input}!")
+                    st.success(f"✅ PIN jadi {new_pin_input}!")
                     st.rerun()
-            else:
-                st.error("❌ Password Master Salah!")
+            else: st.error("❌ Password Salah!")
