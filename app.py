@@ -16,6 +16,13 @@ st.markdown("""
             font-family: 'Poppins', sans-serif !important;
         }
         
+        /* --- EFEK BACKGROUND DOT GRID --- */
+        [data-testid="stAppViewContainer"] {
+            background-color: #EAE3CD;
+            background-image: radial-gradient(rgba(129, 146, 100, 0.2) 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+        
         /* Efek Tombol Interaktif (Ngangkat pas disentuh) */
         .stButton > button {
             transition: all 0.3s ease-in-out !important;
@@ -193,7 +200,7 @@ mvp_points = points_map.get(mvp_name, 0)
 
 c1, c2 = st.columns([1, 2])
 with c1:
-    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 GOKIL!")
+    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 Gacor parah!")
 
 with c2:
     chart_data = pd.DataFrame(list(points_map.items()), columns=["Anggota", "Total Jam"]).set_index("Anggota")
