@@ -26,7 +26,8 @@ with col_logo2:
 st.markdown("<h1 style='text-align: center;'>Dashboard Revenue & Absensi</h1>", unsafe_allow_html=True)
 st.divider()
 
-MEMBERS = ["Ale", "Alfi", "Rayi", "Rosli", "Rafli"]
+# DAFTAR NAMA ANGGOTA PROJECT 4/4
+MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
 
 # Koneksi ke Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
