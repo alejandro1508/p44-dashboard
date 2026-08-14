@@ -15,6 +15,25 @@ st.markdown("""
         html, body, [class*="css"]  {
             font-family: 'Poppins', sans-serif !important;
         }
+        
+        /* Efek Tombol Interaktif (Ngangkat pas disentuh) */
+        .stButton > button {
+            transition: all 0.3s ease-in-out !important;
+        }
+        .stButton > button:hover {
+            transform: translateY(-3px) scale(1.02) !important;
+            box-shadow: 0px 8px 15px rgba(129, 146, 100, 0.4) !important;
+        }
+
+        /* Efek Teks Glowing (Lampu Neon) untuk Judul */
+        @keyframes pulseGlow {
+            0% { text-shadow: 0 0 5px rgba(129,146,100,0.2); }
+            50% { text-shadow: 0 0 20px rgba(129,146,100,0.8), 0 0 30px rgba(129,146,100,0.6); }
+            100% { text-shadow: 0 0 5px rgba(129,146,100,0.2); }
+        }
+        h3 {
+            animation: pulseGlow 3s infinite alternate !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -45,7 +64,7 @@ if df_att.empty:
     df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 
 # Ambil PIN harian dari database
-current_pin = "2026" # Default fallback PIN diubah ke 2026
+current_pin = "2026" # Default fallback PIN
 if not df_setting.empty and "Parameter" in df_setting.columns:
     pin_row = df_setting[df_setting["Parameter"] == "PIN_STUDIO"]
     if not pin_row.empty:
@@ -110,7 +129,7 @@ with col2:
                 
                 if submit_in:
                     if pin_in != current_pin:
-                        st.error("❌ PIN Salah! Nggak bisa nitip absen dari jauh bos.")
+                        st.error("❌ PIN Salah! Cek lagi di papan tulis.")
                     else:
                         now_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
                         new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": name_in, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
@@ -174,7 +193,7 @@ mvp_points = points_map.get(mvp_name, 0)
 
 c1, c2 = st.columns([1, 2])
 with c1:
-    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 GOKSS!!")
+    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 Gacor parah!")
 
 with c2:
     chart_data = pd.DataFrame(list(points_map.items()), columns=["Anggota", "Total Jam"]).set_index("Anggota")
@@ -219,18 +238,15 @@ st.table(pd.DataFrame(result_data))
 
 st.divider()
 
-# --- 5. PANEL ADMIN KHUSUS ALE ---
+# --- 5. PANEL ADMIN ---
 st.subheader("⚙️ Panel Admin")
-with st.expander("Klik untuk Ganti PIN Studio Harian"):
-    st.caption("Ubah PIN")
+with st.expander("Ganti PIN Studio Harian"):
     with st.form("form_ganti_pin"):
         new_pin_input = st.text_input("Masukkan PIN Studio Baru", placeholder="Contoh: 9999")
-        # PASSWORD MASTER KHUSUS 
-        master_pass_input = st.text_input("Password Master", type="password", placeholder="Masukkan Password")
-        submit_new_pin = st.form_submit_button("Update PIN Database")
+        master_pass_input = st.text_input("Password Master", type="password", placeholder="Masukkan Password Admin")
+        submit_new_pin = st.form_submit_button("Update PIN")
         
         if submit_new_pin:
-            # Password master hardcoded biar aman
             if master_pass_input == "ALE1508": 
                 if "Parameter" in df_setting.columns:
                     idx = df_setting.index[df_setting["Parameter"] == "PIN_STUDIO"].tolist()
