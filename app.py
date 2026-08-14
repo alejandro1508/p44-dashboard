@@ -93,7 +93,7 @@ st.markdown("""
 
 # --- KONFIGURASI UTAMA ---
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
-TARGET_CUAN = 1500000  # <--- GANTI TARGET RUPIAH MINGGUAN DI SINI
+TARGET_CUAN = 1500000  # <--- Target Rupiah Mingguan
 
 # Koneksi ke Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
@@ -134,7 +134,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 if is_gold and total_income > 0:
-    st.balloons() # Munculin balon otomatis kalau tembus target
+    st.balloons() 
 
 # Ambil PIN harian dari database
 current_pin = "2026"
@@ -312,38 +312,20 @@ base_slip = base_per_person
 bonus_slip = pts_slip * val_per_point
 total_slip = base_slip + bonus_slip
 
-st.markdown(f"""
+html_slip = f"""
 <div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15); max-width: 400px; margin: 0 auto;">
-    <h4 style="text-align: center; margin-bottom: 5px; color: #2c3322;">🧾 SLIP GAJI PROJECT 4/4</h4>
-    <p style="text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;">Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p>
-    
-    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-        <span style="font-weight: 500; color: #2c3322;">Nama Anggota:</span>
-        <span style="font-weight: 700; color: #2c3322;">{slip_name}</span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-        <span style="font-weight: 500; color: #2c3322;">Total Jam Live:</span>
-        <span style="font-weight: 700; color: #2c3322;">{pts_slip} Jam</span>
-    </div>
-    
-    <div style="border-bottom: 1px dashed #819264; margin-bottom: 15px;"></div>
-    
-    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-        <span style="font-weight: 500; color: #2c3322;">Upah Dasar:</span>
-        <span style="color: #2c3322;">Rp {base_slip:,.0f}</span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-        <span style="font-weight: 500; color: #2c3322;">Bonus Jam (Poin):</span>
-        <span style="color: #2c3322;">Rp {bonus_slip:,.0f}</span>
-    </div>
-    
-    <div style="background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;">
-        <h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">TOTAL CAIR</h3>
-        <h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">Rp {total_slip:,.0f}</h3>
-    </div>
-    <p style="text-align: center; font-size: 11px; color: #6a7a52; margin-top: 15px; margin-bottom: 0;">* Screenshot struk digital ini sebagai bukti sah</p>
+<h4 style="text-align: center; margin-bottom: 5px; color: #2c3322;">🧾 SLIP GAJI PROJECT 4/4</h4>
+<p style="text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;">Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p>
+<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="font-weight: 500; color: #2c3322;">Nama Anggota:</span><span style="font-weight: 700; color: #2c3322;">{slip_name}</span></div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 15px;"><span style="font-weight: 500; color: #2c3322;">Total Jam Live:</span><span style="font-weight: 700; color: #2c3322;">{pts_slip} Jam</span></div>
+<div style="border-bottom: 1px dashed #819264; margin-bottom: 15px;"></div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="font-weight: 500; color: #2c3322;">Upah Dasar:</span><span style="color: #2c3322;">Rp {base_slip:,.0f}</span></div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 15px;"><span style="font-weight: 500; color: #2c3322;">Bonus Jam (Poin):</span><span style="color: #2c3322;">Rp {bonus_slip:,.0f}</span></div>
+<div style="background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;"><h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">TOTAL CAIR</h3><h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">Rp {total_slip:,.0f}</h3></div>
+<p style="text-align: center; font-size: 11px; color: #6a7a52; margin-top: 15px; margin-bottom: 0;">* Screenshot struk digital ini sebagai bukti sah</p>
 </div>
-""", unsafe_allow_html=True)
+"""
+st.markdown(html_slip, unsafe_allow_html=True)
 
 st.divider()
 
