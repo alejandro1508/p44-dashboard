@@ -9,6 +9,14 @@ tz = pytz.timezone('Asia/Jakarta')
 
 # Konfigurasi Halaman (Logo di Tab Browser)
 st.set_page_config(page_title="Dashboard Project 4/4", page_icon="logo.png", layout="wide")
+st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        html, body, [class*="css"]  {
+            font-family: 'Poppins', sans-serif !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # Nampilin Logo di Tengah Atas
 col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
