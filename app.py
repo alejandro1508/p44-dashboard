@@ -84,61 +84,55 @@ st.markdown("""
             color: #2c3322 !important;
             text-align: center;
             font-weight: 700;
-            margin-top: 30px; 
-            margin-bottom: 20px;
-        }
-        
-        /* Geser area kerja ke bawah dikit biar ga nabrak logo fixed */
-        .block-container {
-            padding-top: 60px !important;
+            margin-top: 10px; 
+            margin-bottom: 25px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# --- FITUR BARU: DYNAMIC ISLAND LOGO (TENGAH ATAS & FIXED) ---
-def render_fixed_center_logo():
+# --- FITUR BARU: NAVBAR APLIKASI (FIXED TOP LOGO) ---
+def render_navbar_logo():
     try:
         with open("logo.png", "rb") as f:
             data = f.read()
         b64_logo = base64.b64encode(data).decode()
         st.markdown(f"""
             <style>
-            .dynamic-island {{
+            .app-navbar {{
                 position: fixed;
-                top: 15px;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 999999;
-                background: rgba(255, 255, 255, 0.7);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 70px;
+                background: rgba(234, 227, 205, 0.85); /* Warna krem estetik transparan */
                 backdrop-filter: blur(12px);
                 -webkit-backdrop-filter: blur(12px);
-                padding: 6px 25px;
-                border-radius: 50px;
-                box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.5);
+                z-index: 99999;
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                border-bottom: 1px solid rgba(129, 146, 100, 0.2);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                pointer-events: none; /* Biar tombol setting streamlit tetep bisa diklik */
             }}
-            .dynamic-island img {{
-                height: 35px; /* Kompak di HP */
+            .app-navbar img {{
+                height: 45px; /* Proporsional, ga kekecilan, jelas kebaca */
                 object-fit: contain;
             }}
-            @media (min-width: 768px) {{
-                .dynamic-island img {{
-                    height: 45px; /* Agak besar di Laptop */
-                }}
+            /* Turunin area konten biar ga nabrak navbar */
+            .block-container {{
+                padding-top: 90px !important;
             }}
             </style>
-            <div class="dynamic-island">
+            <div class="app-navbar">
                 <img src="data:image/png;base64,{b64_logo}" alt="Project 4/4">
             </div>
         """, unsafe_allow_html=True)
     except:
         pass
 
-# Eksekusi logo melayang di tengah
-render_fixed_center_logo()
+# Eksekusi Navbar
+render_navbar_logo()
 
 # --- KONFIGURASI UTAMA ---
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
@@ -161,6 +155,7 @@ if df_att.empty:
 # Hitung Total Pemasukan
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
+# Judul Utama
 st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
 
 # --- PROGRESS BAR TARGET CUAN ---
