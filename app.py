@@ -44,7 +44,7 @@ active_names = df_active["Nama"].tolist() if not df_active.empty else []
 
 col1, col2 = st.columns(2)
 
-# --- 1. FORM PEMASUKAN ---
+# --- 1. FORM PEMASUKAN & HISTORY ---
 with col1:
     st.subheader("💰 1. Input Pemasukan")
     with st.form("form_income"):
@@ -60,6 +60,16 @@ with col1:
             st.balloons() # Animasi Hujan Balon
             st.success("Cuan berhasil dicatat!")
             st.rerun()
+            
+    # Tabel History Pemasukan Terakhir
+    st.markdown("**📜 5 Riwayat Pemasukan Terakhir**")
+    if not df_income.empty:
+        # Ambil 5 data terbawah, balik urutannya biar yang terbaru di atas
+        df_history = df_income.tail(5).iloc[::-1].copy()
+        df_history["Nominal"] = pd.to_numeric(df_history["Nominal"], errors='coerce').fillna(0).apply(lambda x: f"Rp {x:,.0f}")
+        st.dataframe(df_history, use_container_width=True, hide_index=True)
+    else:
+        st.caption("Belum ada data pemasukan tercatat.")
 
 # --- 2. FORM ABSENSI OTOMATIS ---
 with col2:
@@ -151,7 +161,7 @@ st.divider()
 # --- 4. KALKULASI BAGI HASIL ---
 st.subheader("💼 4. Hasil Bagi Hasil Mingguan")
 
-total_income = df_income["Nominal"].astype(float).sum() if not df_income.empty else 0
+total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
 kas_studio = total_income * 0.30
 kas_ops = total_income * 0.20
