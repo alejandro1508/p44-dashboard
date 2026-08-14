@@ -193,7 +193,7 @@ mvp_points = points_map.get(mvp_name, 0)
 
 c1, c2 = st.columns([1, 2])
 with c1:
-    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 Gacor parah!")
+    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 GOKIL!")
 
 with c2:
     chart_data = pd.DataFrame(list(points_map.items()), columns=["Anggota", "Total Jam"]).set_index("Anggota")
