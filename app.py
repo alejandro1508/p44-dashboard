@@ -9,6 +9,8 @@ tz = pytz.timezone('Asia/Jakarta')
 
 # Konfigurasi Halaman & Font Poppins
 st.set_page_config(page_title="Dashboard Project 4/4", page_icon="logo.png", layout="wide")
+
+# --- SUNTIKAN CSS GOD TIER (VISUAL UPGRADE) ---
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -22,17 +24,57 @@ st.markdown("""
             background-image: radial-gradient(rgba(129, 146, 100, 0.2) 2px, transparent 2px);
             background-size: 30px 30px;
         }
+
+        /* --- ANIMASI FADE-IN SAAT DIBUKA --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .main {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* --- GLASSMORPHISM (EFEK KACA BURAM) --- */
+        [data-testid="stForm"], [data-testid="stMetric"], [data-testid="stDataFrame"], .stTable > div {
+            background: rgba(255, 255, 255, 0.45) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            border-radius: 15px !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15) !important;
+            padding: 20px !important;
+            transition: all 0.3s ease-in-out !important;
+        }
+
+        /* Efek Kotak Melayang (Hover) */
+        [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(129, 146, 100, 0.25) !important;
+        }
         
-        /* Efek Tombol Interaktif (Ngangkat pas disentuh) */
+        /* --- WARNA CUSTOM (OLIVE GREEN) --- */
+        .stTextInput input:focus, .stNumberInput input:focus, input[type="password"]:focus {
+            border-color: #819264 !important;
+            box-shadow: 0 0 0 1px #819264 !important;
+        }
+        
+        /* Tombol Premium */
         .stButton > button {
+            background-color: #819264 !important;
+            color: white !important;
+            border-radius: 10px !important;
+            border: none !important;
+            font-weight: 600 !important;
             transition: all 0.3s ease-in-out !important;
         }
         .stButton > button:hover {
             transform: translateY(-3px) scale(1.02) !important;
             box-shadow: 0px 8px 15px rgba(129, 146, 100, 0.4) !important;
+            background-color: #6a7a52 !important;
+            color: white !important;
         }
 
-        /* Efek Teks Glowing (Lampu Neon) untuk Judul */
+        /* Efek Teks Glowing untuk Judul */
         @keyframes pulseGlow {
             0% { text-shadow: 0 0 5px rgba(129,146,100,0.2); }
             50% { text-shadow: 0 0 20px rgba(129,146,100,0.8), 0 0 30px rgba(129,146,100,0.6); }
@@ -40,9 +82,11 @@ st.markdown("""
         }
         h3 {
             animation: pulseGlow 3s infinite alternate !important;
+            color: #2c3322 !important;
         }
     </style>
 """, unsafe_allow_html=True)
+# --- END SUNTIKAN CSS ---
 
 # Logo
 col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
@@ -76,7 +120,6 @@ if not df_setting.empty and "Parameter" in df_setting.columns:
     pin_row = df_setting[df_setting["Parameter"] == "PIN_STUDIO"]
     if not pin_row.empty:
         raw_pin = str(pin_row.iloc[0]["Value"])
-        # Antisipasi kalau Google Sheets ngebaca angka jadi float (misal 2026.0)
         if raw_pin.endswith('.0'):
             current_pin = raw_pin[:-2]
         else:
@@ -106,7 +149,6 @@ with col1:
             st.success("Cuan berhasil dicatat!")
             st.rerun()
             
-    # Tabel History Pemasukan Terakhir
     st.markdown("**📜 5 Riwayat Pemasukan Terakhir**")
     if not df_income.empty:
         df_history = df_income.tail(5).iloc[::-1].copy()
