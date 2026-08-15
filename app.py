@@ -23,17 +23,14 @@ st.markdown("""
             background-size: 30px 30px;
         }
 
-        /* Animasi Fade In */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .main { animation: fadeInUp 0.8s ease-out; }
 
-        /* Animasi Blinking ON AIR */
         @keyframes blinker { 50% { opacity: 0.3; } }
         .on-air-badge {
             background-color: #ff4b4b; color: white; padding: 8px 20px; 
             border-radius: 50px; font-weight: 700; font-size: 16px;
-            animation: blinker 1.2s linear infinite;
-            display: inline-block; margin-bottom: 15px;
+            animation: blinker 1.2s linear infinite; display: inline-block; margin-bottom: 15px;
             box-shadow: 0 0 15px rgba(255, 75, 75, 0.5);
         }
         .offline-badge {
@@ -42,22 +39,18 @@ st.markdown("""
             display: inline-block; margin-bottom: 15px;
         }
 
-        /* Glassmorphism Umum */
         [data-testid="stForm"], [data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.45) !important;
-            backdrop-filter: blur(10px) !important;
-            border-radius: 15px !important;
-            border: 1px solid rgba(255, 255, 255, 0.4) !important;
+            background: rgba(255, 255, 255, 0.45) !important; backdrop-filter: blur(10px) !important;
+            border-radius: 15px !important; border: 1px solid rgba(255, 255, 255, 0.4) !important;
             box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15) !important;
             padding: 20px !important; transition: all 0.3s ease-in-out !important;
         }
         [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover { transform: translateY(-5px); }
         [data-testid="stDataFrame"] { border-radius: 15px !important; overflow: hidden !important; }
         
-        /* Kartu Jadwal Estetik */
+        /* CSS KHUSUS JADWAL */
         .schedule-container {
             display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px;
-            -ms-overflow-style: none; scrollbar-width: none;
         }
         .schedule-container::-webkit-scrollbar { display: none; }
         .schedule-card {
@@ -81,11 +74,7 @@ st.markdown("""
         }
         .stButton > button:hover { transform: translateY(-3px) scale(1.02) !important; background-color: #6a7a52 !important; }
 
-        @keyframes pulseGlow {
-            0% { text-shadow: 0 0 5px rgba(129,146,100,0.2); }
-            50% { text-shadow: 0 0 20px rgba(129,146,100,0.8); }
-            100% { text-shadow: 0 0 5px rgba(129,146,100,0.2); }
-        }
+        @keyframes pulseGlow { 0% { text-shadow: 0 0 5px rgba(129,146,100,0.2); } 50% { text-shadow: 0 0 20px rgba(129,146,100,0.8); } 100% { text-shadow: 0 0 5px rgba(129,146,100,0.2); } }
         h3.glow-title { animation: pulseGlow 3s infinite alternate !important; color: #2c3322 !important; text-align: center; font-weight: 700; margin-bottom: 5px; }
     </style>
 """, unsafe_allow_html=True)
@@ -99,8 +88,7 @@ else: greeting = "Malam"
 
 # --- LOGO & JUDUL ---
 col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
-with col_logo2:
-    st.image("logo.png", use_container_width=True)
+with col_logo2: st.image("logo.png", use_container_width=True)
 st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; color: #6a7a52; font-weight: 600; margin-bottom: 15px;'>Selamat {greeting}, Warga 4/4! ☕ | {now_time.strftime('%d %B %Y')}</p>", unsafe_allow_html=True)
 
@@ -114,33 +102,19 @@ st.markdown("""
 # --- KONFIGURASI DATA ---
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
 TARGET_CUAN = 1500000
-
-# ==============================================================
-# LE, KALAU MAU GANTI NAMA JADWAL PIKET, EDIT TULISAN DI BAWAH INI:
-# ==============================================================
-JADWAL_STUDIO = {
-    "Senin": "Vino & Adli",
-    "Selasa": "Ale & Rian",
-    "Rabu": "Owbet & Vino",
-    "Kamis": "Adli & Rian",
-    "Jumat": "Ale & Owbet",
-    "Sabtu": "All Member",
-    "Minggu": "Libur"
-}
+JADWAL_STUDIO = {"Senin": "Vino & Adli", "Selasa": "Ale & Rian", "Rabu": "Owbet & Vino", "Kamis": "Adli & Rian", "Jumat": "Ale & Owbet", "Sabtu": "All Member", "Minggu": "Libur"}
 
 def get_safe_data(conn, sheet_name, cols):
     try: return conn.read(worksheet=sheet_name, usecols=cols, ttl=5).dropna(how="all")
     except Exception: return pd.DataFrame()
 
 conn = st.connection("gsheets", type=GSheetsConnection)
-
 df_income = get_safe_data(conn, "Pemasukan", [0, 1, 2])
 df_att = get_safe_data(conn, "Absensi", [0, 1, 2, 3, 4])
 df_setting = get_safe_data(conn, "Pengaturan", [0, 1])
 
 if df_att.empty and not 'Tanggal' in df_att.columns: df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 if df_income.empty and not 'Nominal' in df_income.columns: df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
-
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
 # --- TARGET BAR ---
@@ -158,22 +132,16 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- JADWAL STUDIO (DYNAMIC RENDER) ---
-hari_ini_idx = now_time.weekday() # 0 = Senin, 6 = Minggu
+# --- FIX JADWAL STUDIO (TANPA SPASI BOCOR) ---
+hari_ini_idx = now_time.weekday()
 days_list = list(JADWAL_STUDIO.keys())
-
-schedule_html = "<div class='schedule-container'>"
+html_jadwal = "<div class='schedule-container'>"
 for i, day in enumerate(days_list):
-    is_today = "today" if i == hari_ini_idx else ""
+    c_today = "today" if i == hari_ini_idx else ""
     names = JADWAL_STUDIO[day]
-    schedule_html += f"""
-        <div class='schedule-card {is_today}'>
-            <div class='sch-day'>{day}</div>
-            <div class='sch-name'>{names}</div>
-        </div>
-    """
-schedule_html += "</div>"
-st.markdown(schedule_html, unsafe_allow_html=True)
+    html_jadwal += f"<div class='schedule-card {c_today}'><div class='sch-day'>{day}</div><div class='sch-name'>{names}</div></div>"
+html_jadwal += "</div>"
+st.markdown(html_jadwal, unsafe_allow_html=True)
 
 # --- AMBIL PIN ---
 current_pin = "2026"
@@ -207,8 +175,7 @@ with col1:
                 new_row = pd.DataFrame([{"Tanggal": datetime.now(tz).strftime("%Y-%m-%d %H:%M"), "Keterangan": desc, "Nominal": amount}])
                 conn.update(worksheet="Pemasukan", data=pd.concat([df_income, new_row], ignore_index=True))
                 st.success("Tersimpan!")
-                time.sleep(1)
-                st.rerun()
+                time.sleep(1); st.rerun()
             except: st.error("Google Sheets sibuk. Coba lagi!")
                     
     st.markdown("**📜 Riwayat Pemasukan**")
@@ -219,10 +186,8 @@ with col1:
 with col2:
     st.subheader("⏱️ 2. Sistem Absen")
     
-    if active_names:
-        st.markdown(f"<div class='on-air-badge'>🔴 ON AIR : {', '.join(active_names)}</div>", unsafe_allow_html=True)
-    else:
-        st.markdown("<div class='offline-badge'>⚪ STUDIO OFFLINE</div>", unsafe_allow_html=True)
+    if active_names: st.markdown(f"<div class='on-air-badge'>🔴 ON AIR : {', '.join(active_names)}</div>", unsafe_allow_html=True)
+    else: st.markdown("<div class='offline-badge'>⚪ STUDIO OFFLINE</div>", unsafe_allow_html=True)
     
     mode = st.radio("Pilih Aksi:", ["Masuk Live", "Selesai Individu (Pulang Duluan)", "Tutup Studio (Selesai Semua)"])
     
@@ -252,15 +217,13 @@ with col2:
                     if pin_out != current_pin: st.error("❌ PIN Salah!")
                     else:
                         try:
-                            now_dt = datetime.now(tz)
-                            now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+                            now_dt = datetime.now(tz); now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                             for idx, row in df_att.iterrows():
                                 if row["Nama"] == nama_out and (pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == ""):
                                     masuk_dt = parse_time_safe(row["Jam Masuk"])
                                     masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
-                                    df_att.at[idx, "Jam Keluar"] = now_str
-                                    df_att.at[idx, "Poin"] = round(durasi, 1)
+                                    df_att.at[idx, "Jam Keluar"] = now_str; df_att.at[idx, "Poin"] = round(durasi, 1)
                             conn.update(worksheet="Absensi", data=df_att)
                             st.snow(); time.sleep(1); st.rerun()
                         except: st.error("Gagal ngitung, klik lagi.")
@@ -275,15 +238,13 @@ with col2:
                     if pin_all != current_pin: st.error("❌ PIN Salah!")
                     else:
                         try:
-                            now_dt = datetime.now(tz)
-                            now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+                            now_dt = datetime.now(tz); now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                             for idx, row in df_att.iterrows():
                                 if pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == "":
                                     masuk_dt = parse_time_safe(row["Jam Masuk"])
                                     masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
-                                    df_att.at[idx, "Jam Keluar"] = now_str
-                                    df_att.at[idx, "Poin"] = round(durasi, 1)
+                                    df_att.at[idx, "Jam Keluar"] = now_str; df_att.at[idx, "Poin"] = round(durasi, 1)
                             conn.update(worksheet="Absensi", data=df_att)
                             st.snow(); time.sleep(1); st.rerun()
                         except: st.error("Gagal nutup studio, klik lagi.")
