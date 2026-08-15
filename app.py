@@ -11,7 +11,7 @@ now_time = datetime.now(tz)
 
 st.set_page_config(page_title="Dashboard Project 4/4", page_icon="logo.png", layout="wide")
 
-# --- SUNTIKAN CSS GOD TIER + ANIMASI ON AIR ---
+# --- SUNTIKAN CSS GOD TIER + ANIMASI ON AIR + TABEL PREMIUM ---
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -67,6 +67,44 @@ st.markdown("""
             100% { text-shadow: 0 0 5px rgba(129,146,100,0.2); }
         }
         h3.glow-title { animation: pulseGlow 3s infinite alternate !important; color: #2c3322 !important; text-align: center; font-weight: 700; margin-bottom: 5px; }
+
+        /* --- CSS TABEL PREMIUM --- */
+        .premium-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 15px;
+            text-align: left;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            background-color: white;
+        }
+        .premium-table thead tr {
+            background-color: #819264;
+            color: #ffffff;
+            text-align: left;
+            font-weight: bold;
+        }
+        .premium-table th, .premium-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .premium-table tbody tr {
+            transition: all 0.2s ease-in;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .premium-table tbody tr:hover {
+            background-color: rgba(129, 146, 100, 0.1);
+            transform: scale(1.01);
+        }
+        .premium-table tbody tr:last-of-type {
+            border-bottom: 2px solid #819264;
+        }
+        .col-cair {
+            font-weight: 700;
+            color: #2c3322;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -82,7 +120,7 @@ col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
 with col_logo2:
     st.image("logo.png", use_container_width=True)
 st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
-st.markdown(f"<p style='text-align: center; color: #6a7a52; font-weight: 600; margin-bottom: 15px;'>Selamat {greeting}, Hustlers! ☕ | {now_time.strftime('%d %B %Y')}</p>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center; color: #6a7a52; font-weight: 600; margin-bottom: 15px;'>Selamat {greeting}, Warga 4/4! ☕ | {now_time.strftime('%d %B %Y')}</p>", unsafe_allow_html=True)
 
 # --- RUNNING TEXT (MARQUEE) ---
 st.markdown("""
@@ -284,14 +322,45 @@ base_pool = team_share * 0.40; live_pool = team_share * 0.60
 base_per_person = (base_pool / active_members_count) if active_members_count > 0 else 0
 val_per_point = (live_pool / total_points) if total_points > 0 else 0
 
-result_data = []
+# --- SULAP TABEL HTML PREMIUM ---
+table_html = """
+<table class="premium-table">
+    <thead>
+        <tr>
+            <th>Anggota</th>
+            <th>Poin Jam</th>
+            <th>Upah Dasar</th>
+            <th>Bonus Jam</th>
+            <th>TOTAL CAIR</th>
+        </tr>
+    </thead>
+    <tbody>
+"""
+
 for m in MEMBERS:
     pts = points_map[m]
     earned_base = base_per_person if pts > 0 else 0
     earned_bonus = pts * val_per_point
+    total_cair = earned_base + earned_bonus
+    
     is_mvp = " 👑" if m == mvp_name and pts > 0 else ""
-    result_data.append({"Anggota": f"{m}{is_mvp}", "Poin Jam": f"{pts} Jam", "Upah Dasar": f"Rp {earned_base:,.0f}", "Bonus Jam": f"Rp {earned_bonus:,.0f}", "TOTAL CAIR": f"Rp {(earned_base + earned_bonus):,.0f}"})
-st.table(pd.DataFrame(result_data))
+    
+    table_html += f"""
+        <tr>
+            <td><strong>{m}{is_mvp}</strong></td>
+            <td>{pts} Jam</td>
+            <td>Rp {earned_base:,.0f}</td>
+            <td>Rp {earned_bonus:,.0f}</td>
+            <td class="col-cair">Rp {total_cair:,.0f}</td>
+        </tr>
+    """
+
+table_html += """
+    </tbody>
+</table>
+"""
+
+st.markdown(table_html, unsafe_allow_html=True)
 
 # --- SLIP GAJI ---
 st.divider()
