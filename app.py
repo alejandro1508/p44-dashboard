@@ -11,7 +11,7 @@ now_time = datetime.now(tz)
 
 st.set_page_config(page_title="Dashboard Project 4/4", page_icon="logo.png", layout="wide")
 
-# --- SUNTIKAN CSS GOD TIER + ANIMASI ON AIR + RESPONSIVE MOBILE ---
+# --- CSS GOD TIER + ANIMASI + RESPONSIVE MOBILE ---
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -142,13 +142,15 @@ with col1:
         desc = st.text_input("Keterangan", placeholder="Misal: Live Saweria")
         amount = st.number_input("Nominal (Rp)", min_value=0, step=50000)
         if st.form_submit_button("Simpan Pemasukan"):
+            success = False
             try:
                 new_row = pd.DataFrame([{"Tanggal": datetime.now(tz).strftime("%Y-%m-%d %H:%M"), "Keterangan": desc, "Nominal": amount}])
                 conn.update(worksheet="Pemasukan", data=pd.concat([df_income, new_row], ignore_index=True))
-                st.success("Tersimpan!")
+                success = True
+            except Exception as e: st.error(f"Gagal simpan! Error sistem: {e}")
+            if success:
                 st.cache_data.clear()
-            except Exception as e: st.error("Google Sheets sibuk. Coba lagi!")
-            else: st.rerun()
+                st.rerun()
                     
     st.markdown("**📜 Riwayat Pemasukan**")
     if not df_income.empty and len(df_income) > 0:
@@ -171,14 +173,17 @@ with col2:
                 if st.form_submit_button("Masuk Live!"):
                     if pin != current_pin: st.error("❌ PIN Salah!")
                     else:
+                        success = False
                         try:
                             now_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
                             new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": nama, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
                             conn.update(worksheet="Absensi", data=pd.concat([df_att, new_att], ignore_index=True))
-                            st.success(f"✅ {nama} masuk live!")
+                            success = True
+                        except Exception as e: st.error(f"Gagal absen: {e}")
+                        
+                        if success:
                             st.cache_data.clear()
-                        except Exception as e: st.error("Gagal nyimpen, klik lagi.")
-                        else: st.rerun()
+                            st.rerun()
         else: st.info("Semua member sudah di dalam Live!")
 
     elif mode == "Selesai Individu (Pulang Duluan)":
@@ -189,6 +194,7 @@ with col2:
                 if st.form_submit_button("Hitung Poin Individu"):
                     if pin_out != current_pin: st.error("❌ PIN Salah!")
                     else:
+                        success = False
                         try:
                             now_dt = datetime.now(tz); now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                             for idx, row in df_att.iterrows():
@@ -196,11 +202,16 @@ with col2:
                                     masuk_dt = parse_time_safe(row["Jam Masuk"])
                                     masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
-                                    df_att.at[idx, "Jam Keluar"] = now_str; df_att.at[idx, "Poin"] = round(durasi, 1)
+                                    df_att.loc[idx, "Jam Keluar"] = now_str
+                                    df_att.loc[idx, "Poin"] = round(durasi, 1)
                             conn.update(worksheet="Absensi", data=df_att)
-                            st.cache_data.clear(); st.snow()
-                        except Exception as e: st.error("Gagal ngitung, klik lagi.")
-                        else: time.sleep(1); st.rerun()
+                            success = True
+                        except Exception as e: st.error(f"Gagal ngitung: {e}")
+                        
+                        if success:
+                            st.cache_data.clear()
+                            st.snow()
+                            st.rerun()
         else: st.warning("Tidak ada member yang sedang live.")
         
     elif mode == "Tutup Studio (Selesai Semua)":
@@ -211,6 +222,7 @@ with col2:
                 if st.form_submit_button("Akhiri Semua & Hitung Poin"):
                     if pin_all != current_pin: st.error("❌ PIN Salah!")
                     else:
+                        success = False
                         try:
                             now_dt = datetime.now(tz); now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                             for idx, row in df_att.iterrows():
@@ -218,11 +230,16 @@ with col2:
                                     masuk_dt = parse_time_safe(row["Jam Masuk"])
                                     masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
-                                    df_att.at[idx, "Jam Keluar"] = now_str; df_att.at[idx, "Poin"] = round(durasi, 1)
+                                    df_att.loc[idx, "Jam Keluar"] = now_str
+                                    df_att.loc[idx, "Poin"] = round(durasi, 1)
                             conn.update(worksheet="Absensi", data=df_att)
-                            st.cache_data.clear(); st.snow()
-                        except Exception as e: st.error("Gagal nutup studio, klik lagi.")
-                        else: time.sleep(1); st.rerun()
+                            success = True
+                        except Exception as e: st.error(f"Gagal nutup: {e}")
+                        
+                        if success:
+                            st.cache_data.clear()
+                            st.snow()
+                            st.rerun()
         else: st.warning("Studio sudah kosong.")
 
 st.divider()
@@ -280,6 +297,7 @@ with st.expander("Klik untuk Ganti PIN Harian"):
         master_pass_input = st.text_input("Password Master", type="password")
         if st.form_submit_button("Update PIN Database"):
             if master_pass_input == "ALE1508": 
+                success = False
                 try:
                     if "Parameter" in df_setting.columns:
                         idx = df_setting.index[df_setting["Parameter"] == "PIN_STUDIO"].tolist()
@@ -287,8 +305,12 @@ with st.expander("Klik untuk Ganti PIN Harian"):
                         else: df_setting = pd.concat([df_setting, pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])], ignore_index=True)
                     else: df_setting = pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])
                     conn.update(worksheet="Pengaturan", data=df_setting)
+                    success = True
+                except Exception as e: st.error(f"Gagal nyimpen: {e}")
+                
+                if success:
                     st.success(f"✅ PIN Studio diubah jadi {new_pin_input}!")
                     st.cache_data.clear()
-                except Exception as e: st.error("Gagal nyimpen, Google sibuk. Coba bentar lagi.")
-                else: time.sleep(1); st.rerun()
+                    time.sleep(1)
+                    st.rerun()
             else: st.error("❌ Password Master Salah!")
