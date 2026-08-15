@@ -11,11 +11,14 @@ now_time = datetime.now(tz)
 
 st.set_page_config(page_title="Dashboard Project 4/4", page_icon="logo.png", layout="wide")
 
-# --- SUNTIKAN CSS GOD TIER + ANIMASI ON AIR + TABEL PREMIUM ---
+# --- SUNTIKAN CSS GOD TIER + ANIMASI ON AIR + RESPONSIVE MOBILE ---
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        
+        /* FIX GLOBAL PADDING BUAT MOBILE */
         html, body, [class*="css"]  { font-family: 'Poppins', sans-serif !important; }
+        .block-container { padding-left: 15px !important; padding-right: 15px !important; max-width: 100% !important; overflow-x: hidden !important;}
         
         [data-testid="stAppViewContainer"] {
             background-color: #EAE3CD;
@@ -42,7 +45,7 @@ st.markdown("""
             display: inline-block; margin-bottom: 15px;
         }
 
-        /* Glassmorphism */
+        /* Glassmorphism & Anti Mengkol-Mengkol */
         [data-testid="stForm"], [data-testid="stMetric"] {
             background: rgba(255, 255, 255, 0.45) !important;
             backdrop-filter: blur(10px) !important;
@@ -50,9 +53,9 @@ st.markdown("""
             border: 1px solid rgba(255, 255, 255, 0.4) !important;
             box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15) !important;
             padding: 20px !important; transition: all 0.3s ease-in-out !important;
+            width: 100% !important; box-sizing: border-box !important;
         }
         [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover { transform: translateY(-5px); }
-        [data-testid="stDataFrame"] { border-radius: 15px !important; overflow: hidden !important; }
         
         .stButton > button {
             background-color: #819264 !important; color: white !important;
@@ -68,43 +71,37 @@ st.markdown("""
         }
         h3.glow-title { animation: pulseGlow 3s infinite alternate !important; color: #2c3322 !important; text-align: center; font-weight: 700; margin-bottom: 5px; }
 
-        /* --- CSS TABEL PREMIUM --- */
-        .premium-table {
+        /* --- CSS TABEL PREMIUM FIX (RESPONSIVE) --- */
+        .table-responsive-wrapper {
             width: 100%;
-            border-collapse: collapse;
-            margin: 25px 0;
-            font-size: 15px;
-            text-align: left;
+            overflow-x: auto; /* Kunci biar tabel bisa di-scroll ke samping di HP tanpa geser layar utama */
+            -webkit-overflow-scrolling: touch;
             border-radius: 15px;
-            overflow: hidden;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            margin: 25px 0;
             background-color: white;
         }
-        .premium-table thead tr {
-            background-color: #819264;
-            color: #ffffff;
+        .premium-table {
+            width: 100%;
+            min-width: 500px; /* Lebar minimum biar ga dempet di HP */
+            border-collapse: collapse;
+            font-size: 14px;
             text-align: left;
-            font-weight: bold;
+        }
+        .premium-table thead tr {
+            background-color: #819264; color: #ffffff; text-align: left; font-weight: bold;
         }
         .premium-table th, .premium-table td {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 15px; border-bottom: 1px solid #e0e0e0;
         }
         .premium-table tbody tr {
-            transition: all 0.2s ease-in;
-            background-color: rgba(255, 255, 255, 0.8);
+            transition: all 0.2s ease-in; background-color: rgba(255, 255, 255, 0.8);
         }
         .premium-table tbody tr:hover {
             background-color: rgba(129, 146, 100, 0.1);
-            transform: scale(1.01);
         }
-        .premium-table tbody tr:last-of-type {
-            border-bottom: 2px solid #819264;
-        }
-        .col-cair {
-            font-weight: 700;
-            color: #2c3322;
-        }
+        .premium-table tbody tr:last-of-type { border-bottom: 2px solid #819264; }
+        .col-cair { font-weight: 700; color: #2c3322; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -122,12 +119,8 @@ with col_logo2:
 st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; color: #6a7a52; font-weight: 600; margin-bottom: 15px;'>Selamat {greeting}, Warga 4/4! ☕ | {now_time.strftime('%d %B %Y')}</p>", unsafe_allow_html=True)
 
-# --- RUNNING TEXT (MARQUEE) ---
-st.markdown("""
-    <marquee behavior="scroll" direction="left" scrollamount="7" style="background-color: #819264; color: white; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(129,146,100,0.3);">
-    🔥 INFO PROJECT 4/4: JANGAN LUPA BERSIHIN STUDIO SEBELUM BALIK -- PASTIKAN ABSEN KELUAR PAS SELESAI LIVE -- GAS TARGET MINGGU INI! 🔥
-    </marquee>
-""", unsafe_allow_html=True)
+# --- RUNNING TEXT ---
+st.markdown("<marquee scrollamount='7' style='background-color: #819264; color: white; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(129,146,100,0.3);'>🔥 INFO PROJECT 4/4: JANGAN LUPA BERSIHIN STUDIO SEBELUM BALIK -- PASTIKAN ABSEN KELUAR PAS SELESAI LIVE -- GAS TARGET MINGGU INI! 🔥</marquee>", unsafe_allow_html=True)
 
 # --- KONFIGURASI DATA ---
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
@@ -201,13 +194,15 @@ with col1:
                     
     st.markdown("**📜 Riwayat Pemasukan**")
     if not df_income.empty and len(df_income) > 0:
+        # Pake markdown div biar riwayat tabel aman di HP
+        st.markdown("<div style='overflow-x:auto;'>", unsafe_allow_html=True)
         st.dataframe(df_income.tail(5).iloc[::-1], use_container_width=True, hide_index=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # === BAGIAN KANAN: ABSENSI ===
 with col2:
     st.subheader("⏱️ 2. Sistem Absen")
     
-    # INDIKATOR ON AIR BERKEDIP
     if active_names:
         st.markdown(f"<div class='on-air-badge'>🔴 ON AIR : {', '.join(active_names)}</div>", unsafe_allow_html=True)
     else:
@@ -322,43 +317,16 @@ base_pool = team_share * 0.40; live_pool = team_share * 0.60
 base_per_person = (base_pool / active_members_count) if active_members_count > 0 else 0
 val_per_point = (live_pool / total_points) if total_points > 0 else 0
 
-# --- SULAP TABEL HTML PREMIUM ---
-table_html = """
-<table class="premium-table">
-    <thead>
-        <tr>
-            <th>Anggota</th>
-            <th>Poin Jam</th>
-            <th>Upah Dasar</th>
-            <th>Bonus Jam</th>
-            <th>TOTAL CAIR</th>
-        </tr>
-    </thead>
-    <tbody>
-"""
-
+# --- SULAP TABEL HTML PREMIUM (TANPA SPASI BOCOR) ---
+table_html = "<div class='table-responsive-wrapper'><table class='premium-table'><thead><tr><th>Anggota</th><th>Poin Jam</th><th>Upah Dasar</th><th>Bonus Jam</th><th>TOTAL CAIR</th></tr></thead><tbody>"
 for m in MEMBERS:
     pts = points_map[m]
     earned_base = base_per_person if pts > 0 else 0
     earned_bonus = pts * val_per_point
     total_cair = earned_base + earned_bonus
-    
     is_mvp = " 👑" if m == mvp_name and pts > 0 else ""
-    
-    table_html += f"""
-        <tr>
-            <td><strong>{m}{is_mvp}</strong></td>
-            <td>{pts} Jam</td>
-            <td>Rp {earned_base:,.0f}</td>
-            <td>Rp {earned_bonus:,.0f}</td>
-            <td class="col-cair">Rp {total_cair:,.0f}</td>
-        </tr>
-    """
-
-table_html += """
-    </tbody>
-</table>
-"""
+    table_html += f"<tr><td><strong>{m}{is_mvp}</strong></td><td>{pts} Jam</td><td>Rp {earned_base:,.0f}</td><td>Rp {earned_bonus:,.0f}</td><td class='col-cair'>Rp {total_cair:,.0f}</td></tr>"
+table_html += "</tbody></table></div>"
 
 st.markdown(table_html, unsafe_allow_html=True)
 
@@ -369,18 +337,7 @@ slip_name = st.selectbox("Cetak Struk Atas Nama:", MEMBERS)
 pts_slip = points_map.get(slip_name, 0)
 base_slip = base_per_person if pts_slip > 0 else 0
 bonus_slip = pts_slip * val_per_point
-html_slip = f"""
-<div style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; max-width: 400px; margin: 0 auto; box-shadow: 0 8px 32px rgba(129, 146, 100, 0.15);">
-<h4 style="text-align: center; margin: 0 0 5px 0; color: #2c3322;">🧾 SLIP GAJI PROJECT 4/4</h4>
-<p style="text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;">Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p>
-<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="font-weight: 500; color: #2c3322;">Nama:</span><span style="font-weight: 700; color: #2c3322;">{slip_name}</span></div>
-<div style="display: flex; justify-content: space-between; margin-bottom: 15px;"><span style="font-weight: 500; color: #2c3322;">Jam Live:</span><span style="font-weight: 700; color: #2c3322;">{pts_slip} Jam</span></div>
-<div style="border-bottom: 1px dashed #819264; margin-bottom: 15px;"></div>
-<div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span style="font-weight: 500; color: #2c3322;">Upah Dasar:</span><span style="color: #2c3322;">Rp {base_slip:,.0f}</span></div>
-<div style="display: flex; justify-content: space-between; margin-bottom: 15px;"><span style="font-weight: 500; color: #2c3322;">Bonus (Poin):</span><span style="color: #2c3322;">Rp {bonus_slip:,.0f}</span></div>
-<div style="background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;"><h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">TOTAL CAIR</h3><h3 style="text-align: center; margin: 0; color: #2c3322; font-weight: 700;">Rp {(base_slip + bonus_slip):,.0f}</h3></div>
-</div>
-"""
+html_slip = f"<div style='background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; max-width: 400px; margin: 0 auto; box-shadow: 0 8px 32px rgba(129, 146, 100, 0.15);'><h4 style='text-align: center; margin: 0 0 5px 0; color: #2c3322;'>🧾 SLIP GAJI PROJECT 4/4</h4><p style='text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;'>Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Nama:</span><span style='font-weight: 700; color: #2c3322;'>{slip_name}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Jam Live:</span><span style='font-weight: 700; color: #2c3322;'>{pts_slip} Jam</span></div><div style='border-bottom: 1px dashed #819264; margin-bottom: 15px;'></div><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Upah Dasar:</span><span style='color: #2c3322;'>Rp {base_slip:,.0f}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Bonus (Poin):</span><span style='color: #2c3322;'>Rp {bonus_slip:,.0f}</span></div><div style='background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;'><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>TOTAL CAIR</h3><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>Rp {(base_slip + bonus_slip):,.0f}</h3></div></div>"
 st.markdown(html_slip, unsafe_allow_html=True)
 
 # --- PANEL ADMIN ---
