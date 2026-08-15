@@ -3,7 +3,6 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 import pytz
-import time
 
 # Zona waktu Indonesia (WIB)
 tz = pytz.timezone('Asia/Jakarta')
@@ -104,14 +103,25 @@ MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
 TARGET_CUAN = 1500000
 JADWAL_STUDIO = {"Senin": "Vino & Adli", "Selasa": "Ale & Rian", "Rabu": "Owbet & Vino", "Kamis": "Adli & Rian", "Jumat": "Ale & Owbet", "Sabtu": "All Member", "Minggu": "Libur"}
 
-def get_safe_data(conn, sheet_name, cols):
-    try: return conn.read(worksheet=sheet_name, usecols=cols, ttl=5).dropna(how="all")
-    except Exception: return pd.DataFrame()
-
 conn = st.connection("gsheets", type=GSheetsConnection)
-df_income = get_safe_data(conn, "Pemasukan", [0, 1, 2])
-df_att = get_safe_data(conn, "Absensi", [0, 1, 2, 3, 4])
-df_setting = get_safe_data(conn, "Pengaturan", [0, 1])
+
+# Baca Data Pake Error Handling Kuat
+try:
+    df_income = conn.read(worksheet="Pemasukan", usecols=[0, 1, 2], ttl=5).dropna(how="all")
+except:
+    st.warning("⚠️ Google Sheets API Limit. Pemasukan pakai data sementara.")
+    df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
+
+try:
+    df_att = conn.read(worksheet="Absensi", usecols=[0, 1, 2, 3, 4], ttl=5).dropna(how="all")
+except:
+    st.warning("⚠️ Google Sheets API Limit. Absensi pakai data sementara.")
+    df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
+
+try:
+    df_setting = conn.read(worksheet="Pengaturan", usecols=[0, 1], ttl=5).dropna(how="all")
+except:
+    df_setting = pd.DataFrame(columns=["Parameter", "Value"])
 
 if df_att.empty and not 'Tanggal' in df_att.columns: df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 if df_income.empty and not 'Nominal' in df_income.columns: df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
@@ -175,7 +185,7 @@ with col1:
                 new_row = pd.DataFrame([{"Tanggal": datetime.now(tz).strftime("%Y-%m-%d %H:%M"), "Keterangan": desc, "Nominal": amount}])
                 conn.update(worksheet="Pemasukan", data=pd.concat([df_income, new_row], ignore_index=True))
                 st.success("Tersimpan!")
-                time.sleep(1); st.rerun()
+                st.rerun()
             except: st.error("Google Sheets sibuk. Coba lagi!")
                     
     st.markdown("**📜 Riwayat Pemasukan**")
@@ -204,7 +214,7 @@ with col2:
                             new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": nama, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
                             conn.update(worksheet="Absensi", data=pd.concat([df_att, new_att], ignore_index=True))
                             st.success(f"✅ {nama} masuk live!")
-                            time.sleep(1); st.rerun()
+                            st.rerun()
                         except: st.error("Gagal nyimpen, klik lagi.")
         else: st.info("Semua member sudah di dalam Live!")
 
@@ -225,7 +235,8 @@ with col2:
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
                                     df_att.at[idx, "Jam Keluar"] = now_str; df_att.at[idx, "Poin"] = round(durasi, 1)
                             conn.update(worksheet="Absensi", data=df_att)
-                            st.snow(); time.sleep(1); st.rerun()
+                            st.snow()
+                            st.rerun()
                         except: st.error("Gagal ngitung, klik lagi.")
         else: st.warning("Tidak ada member yang sedang live.")
         
@@ -246,7 +257,8 @@ with col2:
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
                                     df_att.at[idx, "Jam Keluar"] = now_str; df_att.at[idx, "Poin"] = round(durasi, 1)
                             conn.update(worksheet="Absensi", data=df_att)
-                            st.snow(); time.sleep(1); st.rerun()
+                            st.snow()
+                            st.rerun()
                         except: st.error("Gagal nutup studio, klik lagi.")
         else: st.warning("Studio sudah kosong.")
 
@@ -334,6 +346,6 @@ with st.expander("Klik untuk Ganti PIN Harian"):
                     else: df_setting = pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])
                     conn.update(worksheet="Pengaturan", data=df_setting)
                     st.success(f"✅ PIN Studio diubah jadi {new_pin_input}!")
-                    time.sleep(1); st.rerun()
+                    st.rerun()
                 except: st.error("Gagal nyimpen, Google sibuk. Coba bentar lagi.")
             else: st.error("❌ Password Master Salah!")
