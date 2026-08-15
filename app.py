@@ -42,7 +42,7 @@ st.markdown("""
             display: inline-block; margin-bottom: 15px;
         }
 
-        /* Glassmorphism */
+        /* Glassmorphism Umum */
         [data-testid="stForm"], [data-testid="stMetric"] {
             background: rgba(255, 255, 255, 0.45) !important;
             backdrop-filter: blur(10px) !important;
@@ -53,6 +53,26 @@ st.markdown("""
         }
         [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover { transform: translateY(-5px); }
         [data-testid="stDataFrame"] { border-radius: 15px !important; overflow: hidden !important; }
+        
+        /* Kartu Jadwal Estetik */
+        .schedule-container {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 25px;
+            -ms-overflow-style: none; scrollbar-width: none;
+        }
+        .schedule-container::-webkit-scrollbar { display: none; }
+        .schedule-card {
+            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(10px);
+            border: 1px solid rgba(129, 146, 100, 0.3); border-radius: 12px;
+            min-width: 120px; padding: 15px 10px; text-align: center; flex: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s;
+        }
+        .schedule-card.today {
+            background: rgba(129, 146, 100, 0.2); border: 2px solid #819264;
+            transform: scale(1.05); box-shadow: 0 8px 20px rgba(129,146,100,0.3);
+        }
+        .sch-day { font-weight: 700; color: #819264; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .sch-name { font-weight: 600; color: #2c3322; font-size: 13px; }
+        .today .sch-day { color: #2c3322; }
         
         .stButton > button {
             background-color: #819264 !important; color: white !important;
@@ -82,7 +102,7 @@ col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
 with col_logo2:
     st.image("logo.png", use_container_width=True)
 st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
-st.markdown(f"<p style='text-align: center; color: #6a7a52; font-weight: 600; margin-bottom: 15px;'>Selamat {greeting}, Hustlers! ☕ | {now_time.strftime('%d %B %Y')}</p>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center; color: #6a7a52; font-weight: 600; margin-bottom: 15px;'>Selamat {greeting}, Warga 4/4! ☕ | {now_time.strftime('%d %B %Y')}</p>", unsafe_allow_html=True)
 
 # --- RUNNING TEXT (MARQUEE) ---
 st.markdown("""
@@ -94,6 +114,19 @@ st.markdown("""
 # --- KONFIGURASI DATA ---
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
 TARGET_CUAN = 1500000
+
+# ==============================================================
+# LE, KALAU MAU GANTI NAMA JADWAL PIKET, EDIT TULISAN DI BAWAH INI:
+# ==============================================================
+JADWAL_STUDIO = {
+    "Senin": "Vino & Adli",
+    "Selasa": "Ale & Rian",
+    "Rabu": "Owbet & Vino",
+    "Kamis": "Adli & Rian",
+    "Jumat": "Ale & Owbet",
+    "Sabtu": "All Member",
+    "Minggu": "Libur"
+}
 
 def get_safe_data(conn, sheet_name, cols):
     try: return conn.read(worksheet=sheet_name, usecols=cols, ttl=5).dropna(how="all")
@@ -116,7 +149,7 @@ is_gold = pct >= 100
 bar_color = "linear-gradient(90deg, #FFD700, #F5A623)" if is_gold else "linear-gradient(90deg, #819264, #A3B18A)"
 
 st.markdown(f"""
-<div style="padding: 20px; background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15); margin-bottom: 30px;">
+<div style="padding: 20px; background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(10px); border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15); margin-bottom: 20px;">
     <h4 style="margin: 0 0 10px 0; text-align: center; color: #2c3322;">🎯 TARGET MINGGUAN: Rp {TARGET_CUAN:,.0f}</h4>
     <div style="background-color: rgba(0,0,0,0.1); border-radius: 10px; width: 100%; height: 25px;">
         <div style="background: {bar_color}; width: {pct}%; height: 100%; border-radius: 10px; transition: width 1.5s ease-in-out;"></div>
@@ -124,6 +157,23 @@ st.markdown(f"""
     <p style="text-align: center; margin: 10px 0 0 0; font-weight: 600; color: #2c3322; font-size: 16px;">Terkumpul: Rp {total_income:,.0f} ({pct:.1f}%)</p>
 </div>
 """, unsafe_allow_html=True)
+
+# --- JADWAL STUDIO (DYNAMIC RENDER) ---
+hari_ini_idx = now_time.weekday() # 0 = Senin, 6 = Minggu
+days_list = list(JADWAL_STUDIO.keys())
+
+schedule_html = "<div class='schedule-container'>"
+for i, day in enumerate(days_list):
+    is_today = "today" if i == hari_ini_idx else ""
+    names = JADWAL_STUDIO[day]
+    schedule_html += f"""
+        <div class='schedule-card {is_today}'>
+            <div class='sch-day'>{day}</div>
+            <div class='sch-name'>{names}</div>
+        </div>
+    """
+schedule_html += "</div>"
+st.markdown(schedule_html, unsafe_allow_html=True)
 
 # --- AMBIL PIN ---
 current_pin = "2026"
@@ -169,7 +219,6 @@ with col1:
 with col2:
     st.subheader("⏱️ 2. Sistem Absen")
     
-    # INDIKATOR ON AIR BERKEDIP
     if active_names:
         st.markdown(f"<div class='on-air-badge'>🔴 ON AIR : {', '.join(active_names)}</div>", unsafe_allow_html=True)
     else:
@@ -190,8 +239,7 @@ with col2:
                             new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": nama, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
                             conn.update(worksheet="Absensi", data=pd.concat([df_att, new_att], ignore_index=True))
                             st.success(f"✅ {nama} masuk live!")
-                            time.sleep(1)
-                            st.rerun()
+                            time.sleep(1); st.rerun()
                         except: st.error("Gagal nyimpen, klik lagi.")
         else: st.info("Semua member sudah di dalam Live!")
 
@@ -214,9 +262,7 @@ with col2:
                                     df_att.at[idx, "Jam Keluar"] = now_str
                                     df_att.at[idx, "Poin"] = round(durasi, 1)
                             conn.update(worksheet="Absensi", data=df_att)
-                            st.snow()
-                            time.sleep(1)
-                            st.rerun()
+                            st.snow(); time.sleep(1); st.rerun()
                         except: st.error("Gagal ngitung, klik lagi.")
         else: st.warning("Tidak ada member yang sedang live.")
         
@@ -239,9 +285,7 @@ with col2:
                                     df_att.at[idx, "Jam Keluar"] = now_str
                                     df_att.at[idx, "Poin"] = round(durasi, 1)
                             conn.update(worksheet="Absensi", data=df_att)
-                            st.snow()
-                            time.sleep(1)
-                            st.rerun()
+                            st.snow(); time.sleep(1); st.rerun()
                         except: st.error("Gagal nutup studio, klik lagi.")
         else: st.warning("Studio sudah kosong.")
 
@@ -270,9 +314,7 @@ with c2:
 
 st.divider()
 st.subheader("💼 4. Hasil Bagi Hasil Mingguan")
-kas_studio = total_income * 0.30
-kas_ops = total_income * 0.20
-team_share = total_income * 0.50
+kas_studio = total_income * 0.30; kas_ops = total_income * 0.20; team_share = total_income * 0.50
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Total Pemasukan", f"Rp {total_income:,.0f}")
