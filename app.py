@@ -98,8 +98,19 @@ df_income = get_safe_data(conn, "Pemasukan", [0, 1, 2])
 df_att = get_safe_data(conn, "Absensi", [0, 1, 2, 3, 4])
 df_setting = get_safe_data(conn, "Pengaturan", [0, 1])
 
-if df_att.empty and not 'Tanggal' in df_att.columns: df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
-if df_income.empty and not 'Nominal' in df_income.columns: df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
+# FIX MASALAH TIPE DATA (Sapu Jagat)
+if df_att.empty and not 'Tanggal' in df_att.columns: 
+    df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
+else:
+    # Paksa semua kolom jadi teks (object) biar nggak dikira angka sama Pandas
+    df_att = df_att.astype(str)
+    # Hapus teks 'nan' kalau ada yang kosong
+    df_att.replace('nan', '', inplace=True)
+    df_att.replace('NaN', '', inplace=True)
+    df_att.replace('<NA>', '', inplace=True)
+
+if df_income.empty and not 'Nominal' in df_income.columns: 
+    df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
 
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
@@ -123,7 +134,7 @@ if not df_setting.empty and "Parameter" in df_setting.columns:
     if not pin_row.empty: current_pin = str(pin_row.iloc[0]["Value"]).replace('.0','').strip()
 
 if "Jam Keluar" in df_att.columns:
-    active_mask = df_att["Jam Keluar"].isna() | (df_att["Jam Keluar"] == "")
+    active_mask = (df_att["Jam Keluar"] == "") | (df_att["Jam Keluar"].isna()) | (df_att["Jam Keluar"] == "None")
     active_names = df_att[active_mask]["Nama"].tolist() if not df_att[active_mask].empty else []
 else: active_names = []
 inactive_names = [m for m in MEMBERS if m not in active_names]
@@ -198,12 +209,12 @@ with col2:
                         try:
                             now_dt = datetime.now(tz); now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                             for idx, row in df_att.iterrows():
-                                if row["Nama"] == nama_out and (pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == ""):
+                                if row["Nama"] == nama_out and (row["Jam Keluar"] == "" or pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == "None"):
                                     masuk_dt = parse_time_safe(row["Jam Masuk"])
                                     masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
                                     df_att.loc[idx, "Jam Keluar"] = now_str
-                                    df_att.loc[idx, "Poin"] = round(durasi, 1)
+                                    df_att.loc[idx, "Poin"] = str(round(durasi, 1)) # Simpan sebagai teks biar ga error pandas
                             conn.update(worksheet="Absensi", data=df_att)
                             success = True
                         except Exception as e: st.error(f"Gagal ngitung: {e}")
@@ -211,6 +222,7 @@ with col2:
                         if success:
                             st.cache_data.clear()
                             st.snow()
+                            time.sleep(0.5)
                             st.rerun()
         else: st.warning("Tidak ada member yang sedang live.")
         
@@ -226,12 +238,12 @@ with col2:
                         try:
                             now_dt = datetime.now(tz); now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                             for idx, row in df_att.iterrows():
-                                if pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == "":
+                                if row["Jam Keluar"] == "" or pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == "None":
                                     masuk_dt = parse_time_safe(row["Jam Masuk"])
                                     masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
                                     df_att.loc[idx, "Jam Keluar"] = now_str
-                                    df_att.loc[idx, "Poin"] = round(durasi, 1)
+                                    df_att.loc[idx, "Poin"] = str(round(durasi, 1)) # Simpan sebagai teks
                             conn.update(worksheet="Absensi", data=df_att)
                             success = True
                         except Exception as e: st.error(f"Gagal nutup: {e}")
@@ -239,15 +251,20 @@ with col2:
                         if success:
                             st.cache_data.clear()
                             st.snow()
+                            time.sleep(0.5)
                             st.rerun()
         else: st.warning("Studio sudah kosong.")
 
 st.divider()
 st.subheader("📊 3. Statistik & Leaderboard")
 
-if "Poin" in df_att.columns: df_att["Poin"] = pd.to_numeric(df_att["Poin"], errors='coerce').fillna(0)
-total_points = df_att["Poin"].sum() if "Poin" in df_att.columns else 0
-points_map = df_att.groupby("Nama")["Poin"].sum().to_dict() if "Poin" in df_att.columns else {}
+if "Poin" in df_att.columns: 
+    df_att["Poin"] = pd.to_numeric(df_att["Poin"], errors='coerce').fillna(0)
+    total_points = df_att["Poin"].sum()
+    points_map = df_att.groupby("Nama")["Poin"].sum().to_dict()
+else: 
+    total_points = 0
+    points_map = {}
 for m in MEMBERS: points_map.setdefault(m, 0.0)
 
 active_members_count = sum(1 for m in MEMBERS if points_map[m] > 0)
