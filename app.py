@@ -3,13 +3,14 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 import pytz
+import time
 
 # Zona waktu Indonesia (WIB)
 tz = pytz.timezone('Asia/Jakarta')
 
 st.set_page_config(page_title="Dashboard Project 4/4", page_icon="logo.png", layout="wide")
 
-# --- CSS STABLE & PREMIUM ---
+# --- CSS STABLE, PREMIUM, & LAYOUT FIX ---
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
@@ -19,6 +20,8 @@ st.markdown("""
             background-image: radial-gradient(rgba(129, 146, 100, 0.2) 2px, transparent 2px);
             background-size: 30px 30px;
         }
+        
+        /* Fix Box Nabrak */
         [data-testid="stForm"], [data-testid="stMetric"], [data-testid="stDataFrame"], .stTable > div {
             background: rgba(255, 255, 255, 0.6) !important;
             backdrop-filter: blur(10px) !important;
@@ -26,13 +29,23 @@ st.markdown("""
             border: 1px solid rgba(255, 255, 255, 0.5) !important;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
             padding: 20px !important;
+            width: 100% !important; /* Paksa nurut ukuran kolom */
+            max-width: 100% !important;
+            box-sizing: border-box !important;
         }
+        
+        /* Fix Elemen di dalam Box */
+        .stSelectbox, .stTextInput, .stRadio {
+            width: 100% !important;
+        }
+
         .stButton > button {
             background-color: #819264 !important;
             color: white !important;
             border-radius: 10px !important;
             border: none !important;
             font-weight: 600 !important;
+            width: 100%; /* Tombol menyesuaikan lebar */
         }
         h3 { color: #2c3322 !important; text-align: center; }
     </style>
@@ -48,23 +61,31 @@ st.markdown("<h3 style='margin-bottom: 20px;'>DASHBOARD REVENUE & ABSENSI</h3>",
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
 TARGET_CUAN = 1500000
 
+# Fungsi Aman Baca Data (Anti Layar Merah)
+def get_safe_data(conn, sheet_name, cols):
+    try:
+        # Pake ttl=5 biar ga gampang limit API Google, tapi tetep berasa real-time
+        return conn.read(worksheet=sheet_name, usecols=cols, ttl=5).dropna(how="all")
+    except Exception as e:
+        st.error(f"⚠️ Google Sheets lagi sibuk/limit. Refresh web dalam beberapa detik. ({sheet_name})")
+        return pd.DataFrame()
+
 conn = st.connection("gsheets", type=GSheetsConnection)
-df_income = conn.read(worksheet="Pemasukan", usecols=[0, 1, 2], ttl=0).dropna(how="all")
-df_att = conn.read(worksheet="Absensi", usecols=[0, 1, 2, 3, 4], ttl=0).dropna(how="all")
 
-# Buat Sheet Pengaturan kalau belum ada isinya biar ga error
-try:
-    df_setting = conn.read(worksheet="Pengaturan", usecols=[0, 1], ttl=0).dropna(how="all")
-except:
-    df_setting = pd.DataFrame(columns=["Parameter", "Value"])
+# Baca Data Pake Fungsi Aman
+df_income = get_safe_data(conn, "Pemasukan", [0, 1, 2])
+df_att = get_safe_data(conn, "Absensi", [0, 1, 2, 3, 4])
+df_setting = get_safe_data(conn, "Pengaturan", [0, 1])
 
-if df_att.empty:
+if df_att.empty and not 'Tanggal' in df_att.columns:
     df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
+if df_income.empty and not 'Nominal' in df_income.columns:
+    df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
 
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
 # --- TARGET BAR ---
-pct = min((total_income / TARGET_CUAN) * 100, 100)
+pct = min((total_income / TARGET_CUAN) * 100, 100) if TARGET_CUAN > 0 else 0
 is_gold = pct >= 100
 bar_color = "linear-gradient(90deg, #FFD700, #F5A623)" if is_gold else "linear-gradient(90deg, #819264, #A3B18A)"
 
@@ -88,9 +109,13 @@ if not df_setting.empty and "Parameter" in df_setting.columns:
         current_pin = raw_pin[:-2] if raw_pin.endswith('.0') else raw_pin.strip()
 
 # --- DETEKSI STATUS MEMBER ---
-active_mask = df_att["Jam Keluar"].isna() | (df_att["Jam Keluar"] == "")
-df_active = df_att[active_mask]
-active_names = df_active["Nama"].tolist() if not df_active.empty else []
+if "Jam Keluar" in df_att.columns:
+    active_mask = df_att["Jam Keluar"].isna() | (df_att["Jam Keluar"] == "")
+    df_active = df_att[active_mask]
+    active_names = df_active["Nama"].tolist() if not df_active.empty else []
+else:
+    active_names = []
+    
 inactive_names = [m for m in MEMBERS if m not in active_names]
 
 # --- FUNGSI PARSING WAKTU (ANTI ERROR) ---
@@ -106,14 +131,21 @@ col1, col2 = st.columns(2)
 # === BAGIAN KIRI: PEMASUKAN ===
 with col1:
     st.subheader("💰 Input Pemasukan")
-    with st.form("form_income"):
-        desc = st.text_input("Keterangan", placeholder="Misal: Live Saweria")
-        amount = st.number_input("Nominal (Rp)", min_value=0, step=50000)
-        if st.form_submit_button("Simpan Pemasukan"):
-            new_row = pd.DataFrame([{"Tanggal": datetime.now(tz).strftime("%Y-%m-%d %H:%M"), "Keterangan": desc, "Nominal": amount}])
-            conn.update(worksheet="Pemasukan", data=pd.concat([df_income, new_row], ignore_index=True))
-            st.rerun()
-    if not df_income.empty:
+    with st.container(): # Pakai container biar rapi
+        with st.form("form_income"):
+            desc = st.text_input("Keterangan", placeholder="Misal: Live Saweria")
+            amount = st.number_input("Nominal (Rp)", min_value=0, step=50000)
+            if st.form_submit_button("Simpan Pemasukan"):
+                try:
+                    new_row = pd.DataFrame([{"Tanggal": datetime.now(tz).strftime("%Y-%m-%d %H:%M"), "Keterangan": desc, "Nominal": amount}])
+                    conn.update(worksheet="Pemasukan", data=pd.concat([df_income, new_row], ignore_index=True))
+                    st.success("Tersimpan!")
+                    time.sleep(1)
+                    st.rerun()
+                except:
+                    st.error("Google Sheets sibuk. Coba lagi!")
+                    
+    if not df_income.empty and len(df_income) > 0:
         st.dataframe(df_income.tail(5).iloc[::-1], use_container_width=True, hide_index=True)
 
 # === BAGIAN KANAN: ABSENSI ===
@@ -127,76 +159,90 @@ with col2:
     # 3 MODE ABSEN
     mode = st.radio("Pilih Aksi:", ["Masuk Live", "Selesai Individu (Pulang Duluan)", "Tutup Studio (Selesai Semua)"])
     
-    if mode == "Masuk Live":
-        if inactive_names:
-            with st.form("form_masuk"):
-                nama = st.selectbox("Siapa yang mau absen?", inactive_names)
-                pin = st.text_input("PIN Studio", type="password")
-                if st.form_submit_button("Masuk!"):
-                    if pin != current_pin: st.error("❌ PIN Salah!")
-                    else:
-                        now_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
-                        new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": nama, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
-                        conn.update(worksheet="Absensi", data=pd.concat([df_att, new_att], ignore_index=True))
-                        st.success(f"✅ {nama} masuk live!")
-                        st.rerun()
-        else: st.warning("Semua member sudah di dalam Live!")
+    with st.container(): # Kunci lebar layout
+        if mode == "Masuk Live":
+            if inactive_names:
+                with st.form("form_masuk"):
+                    nama = st.selectbox("Siapa yang mau absen?", inactive_names)
+                    pin = st.text_input("PIN Studio", type="password")
+                    if st.form_submit_button("Masuk Live!"):
+                        if pin != current_pin: st.error("❌ PIN Salah!")
+                        else:
+                            try:
+                                now_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+                                new_att = pd.DataFrame([{"Tanggal": now_str[:10], "Nama": nama, "Jam Masuk": now_str, "Jam Keluar": "", "Poin": ""}])
+                                conn.update(worksheet="Absensi", data=pd.concat([df_att, new_att], ignore_index=True))
+                                st.success(f"✅ {nama} masuk live!")
+                                time.sleep(1)
+                                st.rerun()
+                            except: st.error("Gagal nyimpen, Google sibuk. Klik lagi.")
+            else: st.warning("Semua member sudah di dalam Live!")
 
-    elif mode == "Selesai Individu (Pulang Duluan)":
-        if active_names:
-            with st.form("form_keluar_individu"):
-                nama_out = st.selectbox("Siapa yang mau pulang duluan?", active_names)
-                pin_out = st.text_input("PIN Studio", type="password")
-                if st.form_submit_button("Hitung Poin Individu"):
-                    if pin_out != current_pin: st.error("❌ PIN Salah!")
-                    else:
-                        now_dt = datetime.now(tz)
-                        now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
-                        for idx, row in df_att.iterrows():
-                            if row["Nama"] == nama_out and (pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == ""):
-                                masuk_dt = parse_time_safe(row["Jam Masuk"])
-                                masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
-                                durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01) # minimal dapet poin 0.01
-                                df_att.at[idx, "Jam Keluar"] = now_str
-                                df_att.at[idx, "Poin"] = round(durasi, 1)
-                        conn.update(worksheet="Absensi", data=df_att)
-                        st.snow()
-                        st.rerun()
-        else: st.warning("Tidak ada member yang sedang live.")
-        
-    elif mode == "Tutup Studio (Selesai Semua)":
-        if active_names:
-            with st.form("form_keluar_semua"):
-                st.warning("⚠️ Ini akan mengakhiri waktu untuk SEMUA member yang aktif.")
-                pin_all = st.text_input("PIN Studio", type="password")
-                if st.form_submit_button("Akhiri Semua & Hitung Poin"):
-                    if pin_all != current_pin: st.error("❌ PIN Salah!")
-                    else:
-                        now_dt = datetime.now(tz)
-                        now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
-                        for idx, row in df_att.iterrows():
-                            if pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == "":
-                                masuk_dt = parse_time_safe(row["Jam Masuk"])
-                                masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
-                                durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
-                                df_att.at[idx, "Jam Keluar"] = now_str
-                                df_att.at[idx, "Poin"] = round(durasi, 1)
-                        conn.update(worksheet="Absensi", data=df_att)
-                        st.snow()
-                        st.rerun()
-        else: st.warning("Studio sudah kosong.")
+        elif mode == "Selesai Individu (Pulang Duluan)":
+            if active_names:
+                with st.form("form_keluar_individu"):
+                    nama_out = st.selectbox("Siapa yang mau pulang duluan?", active_names)
+                    pin_out = st.text_input("PIN Studio", type="password")
+                    if st.form_submit_button("Hitung Poin Individu"):
+                        if pin_out != current_pin: st.error("❌ PIN Salah!")
+                        else:
+                            try:
+                                now_dt = datetime.now(tz)
+                                now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+                                for idx, row in df_att.iterrows():
+                                    if row["Nama"] == nama_out and (pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == ""):
+                                        masuk_dt = parse_time_safe(row["Jam Masuk"])
+                                        masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
+                                        durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
+                                        df_att.at[idx, "Jam Keluar"] = now_str
+                                        df_att.at[idx, "Poin"] = round(durasi, 1)
+                                conn.update(worksheet="Absensi", data=df_att)
+                                st.snow()
+                                time.sleep(1)
+                                st.rerun()
+                            except: st.error("Gagal ngitung, Google sibuk. Klik lagi.")
+            else: st.warning("Tidak ada member yang sedang live.")
+            
+        elif mode == "Tutup Studio (Selesai Semua)":
+            if active_names:
+                with st.form("form_keluar_semua"):
+                    st.warning("⚠️ Ini akan mengakhiri waktu untuk SEMUA member yang aktif.")
+                    pin_all = st.text_input("PIN Studio", type="password")
+                    if st.form_submit_button("Akhiri Semua & Hitung Poin"):
+                        if pin_all != current_pin: st.error("❌ PIN Salah!")
+                        else:
+                            try:
+                                now_dt = datetime.now(tz)
+                                now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+                                for idx, row in df_att.iterrows():
+                                    if pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == "":
+                                        masuk_dt = parse_time_safe(row["Jam Masuk"])
+                                        masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
+                                        durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
+                                        df_att.at[idx, "Jam Keluar"] = now_str
+                                        df_att.at[idx, "Poin"] = round(durasi, 1)
+                                conn.update(worksheet="Absensi", data=df_att)
+                                st.snow()
+                                time.sleep(1)
+                                st.rerun()
+                            except: st.error("Gagal nutup studio, Google sibuk. Klik lagi.")
+            else: st.warning("Studio sudah kosong.")
 
 # --- STATISTIK & KALKULASI GAJI ---
 st.divider()
 st.subheader("📊 Statistik & Hasil Bagi Hasil")
 
-df_att["Poin"] = pd.to_numeric(df_att["Poin"], errors='coerce').fillna(0)
-total_points = df_att["Poin"].sum()
-points_map = df_att.groupby("Nama")["Poin"].sum().to_dict()
+if "Poin" in df_att.columns:
+    df_att["Poin"] = pd.to_numeric(df_att["Poin"], errors='coerce').fillna(0)
+    total_points = df_att["Poin"].sum()
+    points_map = df_att.groupby("Nama")["Poin"].sum().to_dict()
+else:
+    total_points = 0
+    points_map = {}
+
 for m in MEMBERS: 
     if m not in points_map: points_map[m] = 0.0
 
-# Logika 0 Jam = 0 Rupiah (Base Pay dibagi hanya ke yang punya jam live)
 active_members_count = sum(1 for m in MEMBERS if points_map[m] > 0)
 
 kas_studio = total_income * 0.30
@@ -217,7 +263,6 @@ val_per_point = (live_pool / total_points) if total_points > 0 else 0
 result_data = []
 for m in MEMBERS:
     pts = points_map[m]
-    # Kalau poin 0, base pay hangus. Kalau ada poin, dapet base pay.
     earned_base = base_per_person if pts > 0 else 0
     earned_bonus = pts * val_per_point
     result_data.append({
@@ -253,22 +298,26 @@ html_slip = f"""
 """
 st.markdown(html_slip, unsafe_allow_html=True)
 
-# --- PANEL ADMIN FIX ---
+# --- PANEL ADMIN ---
 st.divider()
 st.subheader("⚙️ Panel Admin")
 with st.expander("Klik untuk Ganti PIN Harian"):
-    with st.form("form_ganti_pin"):
-        new_pin_input = st.text_input("PIN Baru", placeholder="Misal: 9999")
-        master_pass_input = st.text_input("Password Master", type="password")
-        if st.form_submit_button("Update PIN Database"):
-            if master_pass_input == "ALE1508": 
-                if "Parameter" in df_setting.columns:
-                    idx = df_setting.index[df_setting["Parameter"] == "PIN_STUDIO"].tolist()
-                    if idx: df_setting.at[idx[0], "Value"] = new_pin_input
-                    else: df_setting = pd.concat([df_setting, pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])], ignore_index=True)
-                else:
-                    df_setting = pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])
-                conn.update(worksheet="Pengaturan", data=df_setting)
-                st.success(f"✅ PIN Studio diubah jadi {new_pin_input}!")
-                st.rerun()
-            else: st.error("❌ Password Master Salah!")
+    with st.container():
+        with st.form("form_ganti_pin"):
+            new_pin_input = st.text_input("PIN Baru", placeholder="Misal: 9999")
+            master_pass_input = st.text_input("Password Master", type="password")
+            if st.form_submit_button("Update PIN Database"):
+                if master_pass_input == "ALE1508": 
+                    try:
+                        if "Parameter" in df_setting.columns:
+                            idx = df_setting.index[df_setting["Parameter"] == "PIN_STUDIO"].tolist()
+                            if idx: df_setting.at[idx[0], "Value"] = new_pin_input
+                            else: df_setting = pd.concat([df_setting, pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])], ignore_index=True)
+                        else:
+                            df_setting = pd.DataFrame([{"Parameter": "PIN_STUDIO", "Value": new_pin_input}])
+                        conn.update(worksheet="Pengaturan", data=df_setting)
+                        st.success(f"✅ PIN Studio diubah jadi {new_pin_input}!")
+                        time.sleep(1)
+                        st.rerun()
+                    except: st.error("Gagal nyimpen, Google sibuk. Coba bentar lagi.")
+                else: st.error("❌ Password Master Salah!")
