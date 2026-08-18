@@ -5,63 +5,30 @@ from datetime import datetime
 import pytz
 import time
 
-# Zona waktu Indonesia (WIB)
 tz = pytz.timezone('Asia/Jakarta')
 now_time = datetime.now(tz)
 
 st.set_page_config(page_title="Dashboard Project 4/4", page_icon="logo.png", layout="wide")
 
-# --- CSS GOD TIER + ANIMASI + RESPONSIVE MOBILE ---
+# --- CSS GOD TIER + RESPONSIVE MOBILE ---
 st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-        
         html, body, [class*="css"]  { font-family: 'Poppins', sans-serif !important; }
         .block-container { padding-left: 15px !important; padding-right: 15px !important; max-width: 100% !important; overflow-x: hidden !important;}
-        
-        [data-testid="stAppViewContainer"] {
-            background-color: #EAE3CD;
-            background-image: radial-gradient(rgba(129, 146, 100, 0.2) 2px, transparent 2px);
-            background-size: 30px 30px;
-        }
-
+        [data-testid="stAppViewContainer"] { background-color: #EAE3CD; background-image: radial-gradient(rgba(129, 146, 100, 0.2) 2px, transparent 2px); background-size: 30px 30px; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .main { animation: fadeInUp 0.8s ease-out; }
-
         @keyframes blinker { 50% { opacity: 0.3; } }
-        .on-air-badge {
-            background-color: #ff4b4b; color: white; padding: 8px 20px; 
-            border-radius: 50px; font-weight: 700; font-size: 16px;
-            animation: blinker 1.2s linear infinite; display: inline-block; margin-bottom: 15px;
-            box-shadow: 0 0 15px rgba(255, 75, 75, 0.5);
-        }
-        .offline-badge {
-            background-color: #6c757d; color: white; padding: 8px 20px; 
-            border-radius: 50px; font-weight: 700; font-size: 16px; display: inline-block; margin-bottom: 15px;
-        }
-
-        [data-testid="stForm"], [data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.45) !important; backdrop-filter: blur(10px) !important;
-            border-radius: 15px !important; border: 1px solid rgba(255, 255, 255, 0.4) !important;
-            box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15) !important;
-            padding: 20px !important; transition: all 0.3s ease-in-out !important; width: 100% !important; box-sizing: border-box !important;
-        }
+        .on-air-badge { background-color: #ff4b4b; color: white; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; animation: blinker 1.2s linear infinite; display: inline-block; margin-bottom: 15px; box-shadow: 0 0 15px rgba(255, 75, 75, 0.5); }
+        .offline-badge { background-color: #6c757d; color: white; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; display: inline-block; margin-bottom: 15px; }
+        [data-testid="stForm"], [data-testid="stMetric"] { background: rgba(255, 255, 255, 0.45) !important; backdrop-filter: blur(10px) !important; border-radius: 15px !important; border: 1px solid rgba(255, 255, 255, 0.4) !important; box-shadow: 0 8px 32px 0 rgba(129, 146, 100, 0.15) !important; padding: 20px !important; transition: all 0.3s ease-in-out !important; width: 100% !important; box-sizing: border-box !important; }
         [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover { transform: translateY(-5px); }
-        
-        .stButton > button {
-            background-color: #819264 !important; color: white !important;
-            border-radius: 10px !important; border: none !important;
-            font-weight: 600 !important; transition: all 0.3s ease-in-out !important; width: 100%;
-        }
+        .stButton > button { background-color: #819264 !important; color: white !important; border-radius: 10px !important; border: none !important; font-weight: 600 !important; transition: all 0.3s ease-in-out !important; width: 100%; }
         .stButton > button:hover { transform: translateY(-3px) scale(1.02) !important; background-color: #6a7a52 !important; }
-
         @keyframes pulseGlow { 0% { text-shadow: 0 0 5px rgba(129,146,100,0.2); } 50% { text-shadow: 0 0 20px rgba(129,146,100,0.8); } 100% { text-shadow: 0 0 5px rgba(129,146,100,0.2); } }
         h3.glow-title { animation: pulseGlow 3s infinite alternate !important; color: #2c3322 !important; text-align: center; font-weight: 700; margin-bottom: 5px; }
-
-        .table-responsive-wrapper {
-            width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); margin: 25px 0; background-color: white;
-        }
+        .table-responsive-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 15px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); margin: 25px 0; background-color: white; }
         .premium-table { width: 100%; min-width: 500px; border-collapse: collapse; font-size: 14px; text-align: left; }
         .premium-table thead tr { background-color: #819264; color: #ffffff; text-align: left; font-weight: bold; }
         .premium-table th, .premium-table td { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; }
@@ -73,16 +40,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 hour = now_time.hour
-if 5 <= hour < 11: greeting = "Pagi"
-elif 11 <= hour < 15: greeting = "Siang"
-elif 15 <= hour < 18: greeting = "Sore"
-else: greeting = "Malam"
+greeting = "Pagi" if 5 <= hour < 11 else "Siang" if 11 <= hour < 15 else "Sore" if 15 <= hour < 18 else "Malam"
 
 col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
 with col_logo2: st.image("logo.png", use_container_width=True)
 st.markdown("<h3 class='glow-title'>DASHBOARD REVENUE & ABSENSI</h3>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; color: #6a7a52; font-weight: 600; margin-bottom: 15px;'>Selamat {greeting}, Warga 4/4! ☕ | {now_time.strftime('%d %B %Y')}</p>", unsafe_allow_html=True)
-
 st.markdown("<marquee scrollamount='7' style='background-color: #819264; color: white; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(129,146,100,0.3);'>🔥 INFO PROJECT 4/4: JANGAN LUPA BERSIHIN STUDIO SEBELUM BALIK -- PASTIKAN ABSEN KELUAR PAS SELESAI LIVE -- GAS TARGET MINGGU INI! 🔥</marquee>", unsafe_allow_html=True)
 
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
@@ -97,22 +60,24 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 df_income = get_safe_data(conn, "Pemasukan", [0, 1, 2])
 df_att = get_safe_data(conn, "Absensi", [0, 1, 2, 3, 4])
 df_setting = get_safe_data(conn, "Pengaturan", [0, 1])
+df_expense = get_safe_data(conn, "Pengeluaran", [0, 1, 2, 3])
 
-# FIX MASALAH TIPE DATA (Sapu Jagat)
-if df_att.empty and not 'Tanggal' in df_att.columns: 
-    df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
-else:
-    # Paksa semua kolom jadi teks (object) biar nggak dikira angka sama Pandas
-    df_att = df_att.astype(str)
-    # Hapus teks 'nan' kalau ada yang kosong
-    df_att.replace('nan', '', inplace=True)
-    df_att.replace('NaN', '', inplace=True)
-    df_att.replace('<NA>', '', inplace=True)
+# SAPU JAGAT ANTI ERROR (Force to String)
+if df_att.empty and not 'Tanggal' in df_att.columns: df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
+else: df_att = df_att.astype(str).replace(['nan', 'NaN', '<NA>'], '')
 
-if df_income.empty and not 'Nominal' in df_income.columns: 
-    df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
+if df_setting.empty and not 'Parameter' in df_setting.columns: df_setting = pd.DataFrame(columns=["Parameter", "Value"])
+else: df_setting = df_setting.astype(str).replace(['nan', 'NaN', '<NA>'], '')
+
+if df_income.empty and not 'Nominal' in df_income.columns: df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
+if df_expense.empty and not 'Nominal' in df_expense.columns: df_expense = pd.DataFrame(columns=["Tanggal", "Kategori", "Keterangan", "Nominal"])
 
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
+
+# KALKULASI PENGELUARAN
+if not df_expense.empty: df_expense["Nominal"] = pd.to_numeric(df_expense["Nominal"], errors='coerce').fillna(0)
+total_out_kas = df_expense[df_expense["Kategori"] == "Kas Studio"]["Nominal"].sum() if not df_expense.empty else 0
+total_out_ops = df_expense[df_expense["Kategori"] == "Ops/Makan"]["Nominal"].sum() if not df_expense.empty else 0
 
 pct = min((total_income / TARGET_CUAN) * 100, 100) if TARGET_CUAN > 0 else 0
 is_gold = pct >= 100
@@ -148,26 +113,38 @@ def parse_time_safe(time_str):
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("💰 1. Input Pemasukan")
-    with st.form("form_income"):
-        desc = st.text_input("Keterangan", placeholder="Misal: Live Saweria")
-        amount = st.number_input("Nominal (Rp)", min_value=0, step=50000)
-        if st.form_submit_button("Simpan Pemasukan"):
-            success = False
-            try:
-                new_row = pd.DataFrame([{"Tanggal": datetime.now(tz).strftime("%Y-%m-%d %H:%M"), "Keterangan": desc, "Nominal": amount}])
-                conn.update(worksheet="Pemasukan", data=pd.concat([df_income, new_row], ignore_index=True))
-                success = True
-            except Exception as e: st.error(f"Gagal simpan! Error sistem: {e}")
-            if success:
-                st.cache_data.clear()
-                st.rerun()
-                    
-    st.markdown("**📜 Riwayat Pemasukan**")
-    if not df_income.empty and len(df_income) > 0:
-        st.markdown("<div style='overflow-x:auto;'>", unsafe_allow_html=True)
-        st.dataframe(df_income.tail(5).iloc[::-1], use_container_width=True, hide_index=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    tab1, tab2 = st.tabs(["💰 Pemasukan", "💸 Pengeluaran Kas/Ops"])
+    
+    with tab1:
+        with st.form("form_income"):
+            desc = st.text_input("Sumber Uang (Live Saweria, dll)")
+            amount = st.number_input("Nominal Masuk (Rp)", min_value=0, step=50000)
+            if st.form_submit_button("Simpan Pemasukan"):
+                success = False
+                try:
+                    new_row = pd.DataFrame([{"Tanggal": datetime.now(tz).strftime("%Y-%m-%d %H:%M"), "Keterangan": desc, "Nominal": amount}])
+                    conn.update(worksheet="Pemasukan", data=pd.concat([df_income, new_row], ignore_index=True))
+                    success = True
+                except Exception as e: st.error(f"Error: {e}")
+                if success: st.cache_data.clear(); st.rerun()
+        st.markdown("**📜 Histori Pemasukan**")
+        if not df_income.empty: st.dataframe(df_income.tail(3).iloc[::-1], use_container_width=True, hide_index=True)
+
+    with tab2:
+        with st.form("form_expense"):
+            cat_exp = st.selectbox("Ambil dari Dompet Mana?", ["Kas Studio", "Ops/Makan"])
+            desc_exp = st.text_input("Buat Beli Apa?")
+            amount_exp = st.number_input("Nominal Ditarik (Rp)", min_value=0, step=10000)
+            if st.form_submit_button("Tarik Uang"):
+                success = False
+                try:
+                    new_row = pd.DataFrame([{"Tanggal": datetime.now(tz).strftime("%Y-%m-%d %H:%M"), "Kategori": cat_exp, "Keterangan": desc_exp, "Nominal": amount_exp}])
+                    conn.update(worksheet="Pengeluaran", data=pd.concat([df_expense, new_row], ignore_index=True))
+                    success = True
+                except Exception as e: st.error(f"Error: {e}")
+                if success: st.cache_data.clear(); st.rerun()
+        st.markdown("**📉 Histori Pengeluaran**")
+        if not df_expense.empty: st.dataframe(df_expense.tail(3).iloc[::-1], use_container_width=True, hide_index=True)
 
 with col2:
     st.subheader("⏱️ 2. Sistem Absen")
@@ -191,10 +168,7 @@ with col2:
                             conn.update(worksheet="Absensi", data=pd.concat([df_att, new_att], ignore_index=True))
                             success = True
                         except Exception as e: st.error(f"Gagal absen: {e}")
-                        
-                        if success:
-                            st.cache_data.clear()
-                            st.rerun()
+                        if success: st.cache_data.clear(); st.rerun()
         else: st.info("Semua member sudah di dalam Live!")
 
     elif mode == "Selesai Individu (Pulang Duluan)":
@@ -210,20 +184,13 @@ with col2:
                             now_dt = datetime.now(tz); now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                             for idx, row in df_att.iterrows():
                                 if row["Nama"] == nama_out and (row["Jam Keluar"] == "" or pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == "None"):
-                                    masuk_dt = parse_time_safe(row["Jam Masuk"])
-                                    masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
+                                    masuk_dt = parse_time_safe(row["Jam Masuk"]); masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
-                                    df_att.loc[idx, "Jam Keluar"] = now_str
-                                    df_att.loc[idx, "Poin"] = str(round(durasi, 1)) # Simpan sebagai teks biar ga error pandas
+                                    df_att.loc[idx, "Jam Keluar"] = now_str; df_att.loc[idx, "Poin"] = str(round(durasi, 1))
                             conn.update(worksheet="Absensi", data=df_att)
                             success = True
                         except Exception as e: st.error(f"Gagal ngitung: {e}")
-                        
-                        if success:
-                            st.cache_data.clear()
-                            st.snow()
-                            time.sleep(0.5)
-                            st.rerun()
+                        if success: st.cache_data.clear(); st.snow(); time.sleep(0.5); st.rerun()
         else: st.warning("Tidak ada member yang sedang live.")
         
     elif mode == "Tutup Studio (Selesai Semua)":
@@ -239,32 +206,21 @@ with col2:
                             now_dt = datetime.now(tz); now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
                             for idx, row in df_att.iterrows():
                                 if row["Jam Keluar"] == "" or pd.isna(row["Jam Keluar"]) or row["Jam Keluar"] == "None":
-                                    masuk_dt = parse_time_safe(row["Jam Masuk"])
-                                    masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
+                                    masuk_dt = parse_time_safe(row["Jam Masuk"]); masuk_dt = tz.localize(masuk_dt) if masuk_dt.tzinfo is None else masuk_dt
                                     durasi = max((now_dt - masuk_dt).total_seconds() / 3600.0, 0.01)
-                                    df_att.loc[idx, "Jam Keluar"] = now_str
-                                    df_att.loc[idx, "Poin"] = str(round(durasi, 1)) # Simpan sebagai teks
+                                    df_att.loc[idx, "Jam Keluar"] = now_str; df_att.loc[idx, "Poin"] = str(round(durasi, 1))
                             conn.update(worksheet="Absensi", data=df_att)
                             success = True
                         except Exception as e: st.error(f"Gagal nutup: {e}")
-                        
-                        if success:
-                            st.cache_data.clear()
-                            st.snow()
-                            time.sleep(0.5)
-                            st.rerun()
+                        if success: st.cache_data.clear(); st.snow(); time.sleep(0.5); st.rerun()
         else: st.warning("Studio sudah kosong.")
 
 st.divider()
-st.subheader("📊 3. Statistik & Leaderboard")
+st.subheader("📊 3. Statistik & Keuangan Studio")
 
-if "Poin" in df_att.columns: 
-    df_att["Poin"] = pd.to_numeric(df_att["Poin"], errors='coerce').fillna(0)
-    total_points = df_att["Poin"].sum()
-    points_map = df_att.groupby("Nama")["Poin"].sum().to_dict()
-else: 
-    total_points = 0
-    points_map = {}
+if "Poin" in df_att.columns: df_att["Poin"] = pd.to_numeric(df_att["Poin"], errors='coerce').fillna(0)
+total_points = df_att["Poin"].sum() if "Poin" in df_att.columns else 0
+points_map = df_att.groupby("Nama")["Poin"].sum().to_dict() if "Poin" in df_att.columns else {}
 for m in MEMBERS: points_map.setdefault(m, 0.0)
 
 active_members_count = sum(1 for m in MEMBERS if points_map[m] > 0)
@@ -276,12 +232,18 @@ with c1: st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Liv
 with c2: st.bar_chart(pd.DataFrame(list(points_map.items()), columns=["Anggota", "Total Jam"]).set_index("Anggota"), color="#819264")
 
 st.divider()
-st.subheader("💼 4. Hasil Bagi Hasil Mingguan")
+st.subheader("💼 4. Brankas & Bagi Hasil Mingguan")
 kas_studio = total_income * 0.30; kas_ops = total_income * 0.20; team_share = total_income * 0.50
 
+# SISA SALDO SETELAH DIKURANGI PENGELUARAN
+sisa_kas = kas_studio - total_out_kas
+sisa_ops = kas_ops - total_out_ops
+
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("Total Pemasukan", f"Rp {total_income:,.0f}"); m2.metric("🏢 Kas Studio", f"Rp {kas_studio:,.0f}")
-m3.metric("☕ Ops/Makan", f"Rp {kas_ops:,.0f}"); m4.metric("👥 Jatah Tim", f"Rp {team_share:,.0f}")
+m1.metric("Total Pemasukan", f"Rp {total_income:,.0f}")
+m2.metric("🏢 Sisa Kas Studio", f"Rp {sisa_kas:,.0f}", f"-Rp {total_out_kas:,.0f}" if total_out_kas > 0 else "")
+m3.metric("☕ Sisa Ops/Makan", f"Rp {sisa_ops:,.0f}", f"-Rp {total_out_ops:,.0f}" if total_out_ops > 0 else "")
+m4.metric("👥 Jatah Tim (Aman)", f"Rp {team_share:,.0f}")
 
 base_pool = team_share * 0.40; live_pool = team_share * 0.60
 base_per_person = (base_pool / active_members_count) if active_members_count > 0 else 0
@@ -327,7 +289,5 @@ with st.expander("Klik untuk Ganti PIN Harian"):
                 
                 if success:
                     st.success(f"✅ PIN Studio diubah jadi {new_pin_input}!")
-                    st.cache_data.clear()
-                    time.sleep(1)
-                    st.rerun()
+                    st.cache_data.clear(); time.sleep(1); st.rerun()
             else: st.error("❌ Password Master Salah!")
