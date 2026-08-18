@@ -74,10 +74,11 @@ if df_expense.empty and not 'Nominal' in df_expense.columns: df_expense = pd.Dat
 
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
-# KALKULASI PENGELUARAN
+# KALKULASI PENGELUARAN (KAS, OPS, GAJI)
 if not df_expense.empty: df_expense["Nominal"] = pd.to_numeric(df_expense["Nominal"], errors='coerce').fillna(0)
 total_out_kas = df_expense[df_expense["Kategori"] == "Kas Studio"]["Nominal"].sum() if not df_expense.empty else 0
 total_out_ops = df_expense[df_expense["Kategori"] == "Ops/Makan"]["Nominal"].sum() if not df_expense.empty else 0
+total_out_gaji = df_expense[df_expense["Kategori"] == "Gaji/Jatah Tim"]["Nominal"].sum() if not df_expense.empty else 0
 
 pct = min((total_income / TARGET_CUAN) * 100, 100) if TARGET_CUAN > 0 else 0
 is_gold = pct >= 100
@@ -113,7 +114,7 @@ def parse_time_safe(time_str):
 col1, col2 = st.columns(2)
 
 with col1:
-    tab1, tab2 = st.tabs(["💰 Pemasukan", "💸 Pengeluaran Kas/Ops"])
+    tab1, tab2 = st.tabs(["💰 Pemasukan", "💸 Kas Keluar"])
     
     with tab1:
         with st.form("form_income"):
@@ -132,8 +133,9 @@ with col1:
 
     with tab2:
         with st.form("form_expense"):
-            cat_exp = st.selectbox("Ambil dari Dompet Mana?", ["Kas Studio", "Ops/Makan"])
-            desc_exp = st.text_input("Buat Beli Apa?")
+            # Opsi "Gaji/Jatah Tim" Ditambahkan!
+            cat_exp = st.selectbox("Ambil dari Dompet Mana?", ["Kas Studio", "Ops/Makan", "Gaji/Jatah Tim"])
+            desc_exp = st.text_input("Keterangan (Misal: Bayar Gaji Rian)")
             amount_exp = st.number_input("Nominal Ditarik (Rp)", min_value=0, step=10000)
             if st.form_submit_button("Tarik Uang"):
                 success = False
@@ -143,7 +145,7 @@ with col1:
                     success = True
                 except Exception as e: st.error(f"Error: {e}")
                 if success: st.cache_data.clear(); st.rerun()
-        st.markdown("**📉 Histori Pengeluaran**")
+        st.markdown("**📉 Histori Uang Keluar**")
         if not df_expense.empty: st.dataframe(df_expense.tail(3).iloc[::-1], use_container_width=True, hide_index=True)
 
 with col2:
@@ -235,21 +237,22 @@ st.divider()
 st.subheader("💼 4. Brankas & Bagi Hasil Mingguan")
 kas_studio = total_income * 0.30; kas_ops = total_income * 0.20; team_share = total_income * 0.50
 
-# SISA SALDO SETELAH DIKURANGI PENGELUARAN
+# SISA SALDO SETELAH DIKURANGI PENGELUARAN DARI TIAP DOMPET
 sisa_kas = kas_studio - total_out_kas
 sisa_ops = kas_ops - total_out_ops
+sisa_gaji = team_share - total_out_gaji
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Total Pemasukan", f"Rp {total_income:,.0f}")
 m2.metric("🏢 Sisa Kas Studio", f"Rp {sisa_kas:,.0f}", f"-Rp {total_out_kas:,.0f}" if total_out_kas > 0 else "")
 m3.metric("☕ Sisa Ops/Makan", f"Rp {sisa_ops:,.0f}", f"-Rp {total_out_ops:,.0f}" if total_out_ops > 0 else "")
-m4.metric("👥 Jatah Tim (Aman)", f"Rp {team_share:,.0f}")
+m4.metric("👥 Sisa Jatah Tim", f"Rp {sisa_gaji:,.0f}", f"-Rp {total_out_gaji:,.0f}" if total_out_gaji > 0 else "")
 
 base_pool = team_share * 0.40; live_pool = team_share * 0.60
 base_per_person = (base_pool / active_members_count) if active_members_count > 0 else 0
 val_per_point = (live_pool / total_points) if total_points > 0 else 0
 
-table_html = "<div class='table-responsive-wrapper'><table class='premium-table'><thead><tr><th>Anggota</th><th>Poin Jam</th><th>Upah Dasar</th><th>Bonus Jam</th><th>TOTAL CAIR</th></tr></thead><tbody>"
+table_html = "<div class='table-responsive-wrapper'><table class='premium-table'><thead><tr><th>Anggota</th><th>Poin Jam</th><th>Upah Dasar</th><th>Bonus Jam</th><th>TOTAL HAK CAIR</th></tr></thead><tbody>"
 for m in MEMBERS:
     pts = points_map[m]
     earned_base = base_per_person if pts > 0 else 0
@@ -265,7 +268,7 @@ slip_name = st.selectbox("Cetak Struk Atas Nama:", MEMBERS)
 pts_slip = points_map.get(slip_name, 0)
 base_slip = base_per_person if pts_slip > 0 else 0
 bonus_slip = pts_slip * val_per_point
-html_slip = f"<div style='background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; max-width: 400px; margin: 0 auto; box-shadow: 0 8px 32px rgba(129, 146, 100, 0.15);'><h4 style='text-align: center; margin: 0 0 5px 0; color: #2c3322;'>🧾 SLIP GAJI PROJECT 4/4</h4><p style='text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;'>Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Nama:</span><span style='font-weight: 700; color: #2c3322;'>{slip_name}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Jam Live:</span><span style='font-weight: 700; color: #2c3322;'>{pts_slip} Jam</span></div><div style='border-bottom: 1px dashed #819264; margin-bottom: 15px;'></div><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Upah Dasar:</span><span style='color: #2c3322;'>Rp {base_slip:,.0f}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Bonus (Poin):</span><span style='color: #2c3322;'>Rp {bonus_slip:,.0f}</span></div><div style='background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;'><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>TOTAL CAIR</h3><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>Rp {(base_slip + bonus_slip):,.0f}</h3></div></div>"
+html_slip = f"<div style='background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; max-width: 400px; margin: 0 auto; box-shadow: 0 8px 32px rgba(129, 146, 100, 0.15);'><h4 style='text-align: center; margin: 0 0 5px 0; color: #2c3322;'>🧾 SLIP GAJI PROJECT 4/4</h4><p style='text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;'>Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Nama:</span><span style='font-weight: 700; color: #2c3322;'>{slip_name}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Jam Live:</span><span style='font-weight: 700; color: #2c3322;'>{pts_slip} Jam</span></div><div style='border-bottom: 1px dashed #819264; margin-bottom: 15px;'></div><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Upah Dasar:</span><span style='color: #2c3322;'>Rp {base_slip:,.0f}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Bonus (Poin):</span><span style='color: #2c3322;'>Rp {bonus_slip:,.0f}</span></div><div style='background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;'><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>TOTAL HAK CAIR</h3><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>Rp {(base_slip + bonus_slip):,.0f}</h3></div></div>"
 st.markdown(html_slip, unsafe_allow_html=True)
 
 st.divider()
