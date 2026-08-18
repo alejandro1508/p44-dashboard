@@ -4,6 +4,7 @@ from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 import pytz
 import time
+import random
 
 tz = pytz.timezone('Asia/Jakarta')
 now_time = datetime.now(tz)
@@ -49,7 +50,9 @@ st.markdown(f"<p style='text-align: center; color: #6a7a52; font-weight: 600; ma
 st.markdown("<marquee scrollamount='7' style='background-color: #819264; color: white; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(129,146,100,0.3);'>🔥 INFO PROJECT 4/4: JANGAN LUPA BERSIHIN STUDIO SEBELUM BALIK -- PASTIKAN ABSEN KELUAR PAS SELESAI LIVE -- GAS TARGET MINGGU INI! 🔥</marquee>", unsafe_allow_html=True)
 
 MEMBERS = ["Ale", "Adli", "Rian", "Vino", "Owbet"]
+TAMU_VIP = ["Fauzi", "Hakim", "Rayhan", "Rusdi", "Naufal"]
 TARGET_CUAN = 1500000
+TARGET_POIN_VIP = 7
 
 def get_safe_data(conn, sheet_name, cols):
     try: return conn.read(worksheet=sheet_name, usecols=cols, ttl=5).dropna(how="all")
@@ -61,6 +64,7 @@ df_income = get_safe_data(conn, "Pemasukan", [0, 1, 2])
 df_att = get_safe_data(conn, "Absensi", [0, 1, 2, 3, 4])
 df_setting = get_safe_data(conn, "Pengaturan", [0, 1])
 df_expense = get_safe_data(conn, "Pengeluaran", [0, 1, 2, 3])
+df_tamu = get_safe_data(conn, "Tamu", [0, 1, 2, 3])
 
 # SAPU JAGAT ANTI ERROR (Force to String)
 if df_att.empty and not 'Tanggal' in df_att.columns: df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
@@ -69,12 +73,15 @@ else: df_att = df_att.astype(str).replace(['nan', 'NaN', '<NA>'], '')
 if df_setting.empty and not 'Parameter' in df_setting.columns: df_setting = pd.DataFrame(columns=["Parameter", "Value"])
 else: df_setting = df_setting.astype(str).replace(['nan', 'NaN', '<NA>'], '')
 
+if df_tamu.empty and not 'Aksi' in df_tamu.columns: df_tamu = pd.DataFrame(columns=["Tanggal", "Nama", "Aksi", "Reward"])
+else: df_tamu = df_tamu.astype(str).replace(['nan', 'NaN', '<NA>'], '')
+
 if df_income.empty and not 'Nominal' in df_income.columns: df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
 if df_expense.empty and not 'Nominal' in df_expense.columns: df_expense = pd.DataFrame(columns=["Tanggal", "Kategori", "Keterangan", "Nominal"])
 
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
-# KALKULASI PENGELUARAN (KAS, OPS, GAJI)
+# KALKULASI PENGELUARAN
 if not df_expense.empty: df_expense["Nominal"] = pd.to_numeric(df_expense["Nominal"], errors='coerce').fillna(0)
 total_out_kas = df_expense[df_expense["Kategori"] == "Kas Studio"]["Nominal"].sum() if not df_expense.empty else 0
 total_out_ops = df_expense[df_expense["Kategori"] == "Ops/Makan"]["Nominal"].sum() if not df_expense.empty else 0
@@ -110,6 +117,15 @@ def parse_time_safe(time_str):
         try: return datetime.strptime(str(time_str), fmt)
         except: pass
     return datetime.now()
+
+# HITUNG POIN VIP
+poin_tamu = {}
+for t in TAMU_VIP:
+    if not df_tamu.empty:
+        jml_hadir = len(df_tamu[(df_tamu["Nama"] == t) & (df_tamu["Aksi"] == "Hadir")])
+        jml_gacha = len(df_tamu[(df_tamu["Nama"] == t) & (df_tamu["Aksi"] == "Gacha")])
+        poin_tamu[t] = jml_hadir - (jml_gacha * TARGET_POIN_VIP)
+    else: poin_tamu[t] = 0
 
 col1, col2 = st.columns(2)
 
@@ -152,7 +168,7 @@ with col2:
     if active_names: st.markdown(f"<div class='on-air-badge'>🔴 ON AIR : {', '.join(active_names)}</div>", unsafe_allow_html=True)
     else: st.markdown("<div class='offline-badge'>⚪ STUDIO OFFLINE</div>", unsafe_allow_html=True)
     
-    mode = st.radio("Pilih Aksi:", ["Masuk Live", "Selesai Individu (Pulang Duluan)", "Tutup Studio (Selesai Semua)"])
+    mode = st.radio("Pilih Aksi:", ["Masuk Live", "Selesai Individu (Pulang Duluan)", "Tutup Studio (Selesai Semua)", "🎟️ Arena VIP Warga"])
     
     if mode == "Masuk Live":
         if inactive_names:
@@ -215,6 +231,74 @@ with col2:
                         except Exception as e: st.error(f"Gagal nutup: {e}")
                         if success: st.cache_data.clear(); st.snow(); time.sleep(0.5); st.rerun()
         else: st.warning("Studio sudah kosong.")
+        
+    elif mode == "🎟️ Arena VIP Warga":
+        # EFEK JACKPOT MUNCUL
+        if "gacha_prize" in st.session_state:
+            st.markdown(f"""
+            <div style='background:linear-gradient(45deg, #FFD700, #F5A623); padding:20px; border-radius:15px; text-align:center; color:#2c3322; animation: pulseGlow 2s infinite alternate; margin-bottom:15px;'>
+                <h2 style='margin:0;'>🎉 SELAMAT {st.session_state.gacha_winner}! 🎉</h2>
+                <p style='font-size:16px; margin:5px 0;'>Lu dapet jatah rokok:</p>
+                <h2 style='margin:0; font-weight:800; color:#fff; text-shadow: 1px 1px 2px #000;'>{st.session_state.gacha_prize}</h2>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("Ambil Hadiah & Tutup Menu", use_container_width=True):
+                del st.session_state["gacha_prize"]
+                del st.session_state["gacha_winner"]
+                st.rerun()
+        else:
+            with st.container():
+                st.markdown("<div style='background: rgba(255,255,255,0.5); padding:15px; border-radius:15px; border:1px solid rgba(129,146,100,0.5);'>", unsafe_allow_html=True)
+                tamu_dipilih = st.selectbox("Pilih Nama Warga:", TAMU_VIP)
+                poin_sekarang = poin_tamu.get(tamu_dipilih, 0)
+                
+                pct_tamu = min((poin_sekarang / TARGET_POIN_VIP) * 100, 100)
+                warna_bar = "#FFD700" if poin_sekarang >= TARGET_POIN_VIP else "#819264"
+                
+                st.markdown(f"""
+                <div style="text-align:center; margin-bottom:15px;">
+                    <p style="margin:0; font-weight:600; color:#2c3322;">Progress Kedatangan: {poin_sekarang} / {TARGET_POIN_VIP} Hari</p>
+                    <div style="background:rgba(0,0,0,0.1); border-radius:10px; height:15px; margin-top:5px;">
+                        <div style="background:{warna_bar}; width:{pct_tamu}%; height:100%; border-radius:10px; transition: width 0.5s;"></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                c_btn1, c_btn2 = st.columns(2)
+                with c_btn1:
+                    if st.button("Absen Nongkrong ☕"):
+                        cek_hari_ini = now_time.strftime("%Y-%m-%d")
+                        if not df_tamu.empty and len(df_tamu[(df_tamu["Nama"] == tamu_dipilih) & (df_tamu["Aksi"] == "Hadir") & (df_tamu["Tanggal"].str.startswith(cek_hari_ini))]) > 0:
+                            st.warning("Udah absen hari ini, Bang!")
+                        else:
+                            try:
+                                new_row = pd.DataFrame([{"Tanggal": now_time.strftime("%Y-%m-%d %H:%M"), "Nama": tamu_dipilih, "Aksi": "Hadir", "Reward": "-"}])
+                                conn.update(worksheet="Tamu", data=pd.concat([df_tamu, new_row], ignore_index=True))
+                                st.cache_data.clear(); st.success("Poin Masuk!"); time.sleep(1); st.rerun()
+                            except Exception as e: st.error("Gagal nyimpen data.")
+                
+                with c_btn2:
+                    if poin_sekarang >= TARGET_POIN_VIP:
+                        if st.button("🎰 SPIN GACHA!"):
+                            hadiah_normal = ["Aroma Mile", "Camel Intense Blue", "Camel Option Purple", "Evo Diplomat", "Twizz Purple", "Aroma Bold", "Win Click Berry"]
+                            hadiah_jackpot = ["Sampoerna Mild (Jackpot!)", "LA Purple (Jackpot!)", "Dunhill Fine Cut Mild (Jackpot!)"]
+                            semua_hadiah = hadiah_normal + hadiah_jackpot
+                            # Bobot 90% dibagi 7 normal, 10% dibagi 3 jackpot
+                            bobot = [12.8]*7 + [3.3]*3 
+                            
+                            dapet_hadiah = random.choices(semua_hadiah, weights=bobot, k=1)[0]
+                            
+                            try:
+                                new_row = pd.DataFrame([{"Tanggal": now_time.strftime("%Y-%m-%d %H:%M"), "Nama": tamu_dipilih, "Aksi": "Gacha", "Reward": dapet_hadiah}])
+                                conn.update(worksheet="Tamu", data=pd.concat([df_tamu, new_row], ignore_index=True))
+                                st.cache_data.clear()
+                                st.session_state["gacha_winner"] = tamu_dipilih
+                                st.session_state["gacha_prize"] = dapet_hadiah
+                                st.balloons(); time.sleep(0.5); st.rerun()
+                            except Exception as e: st.error("Sistem Gacha sibuk!")
+                    else:
+                        st.button("🎰 SPIN GACHA!", disabled=True, help="Kurang nongkrong, poin belum cukup!")
+                st.markdown("</div>", unsafe_allow_html=True)
 
 st.divider()
 st.subheader("📊 3. Statistik & Keuangan Studio")
@@ -257,7 +341,6 @@ for m in MEMBERS:
     earned_base = base_per_person if pts > 0 else 0
     earned_bonus = pts * val_per_point
     is_mvp = " 👑" if m == mvp_name and pts > 0 else ""
-    # FORMAT PTS DENGAN .1f BIAR CUMA 1 ANGKA DI BELAKANG KOMA
     table_html += f"<tr><td><strong>{m}{is_mvp}</strong></td><td>{pts:.1f} Jam</td><td>Rp {earned_base:,.0f}</td><td>Rp {earned_bonus:,.0f}</td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
 table_html += "</tbody></table></div>"
 st.markdown(table_html, unsafe_allow_html=True)
