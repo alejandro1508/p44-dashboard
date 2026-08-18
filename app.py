@@ -133,7 +133,6 @@ with col1:
 
     with tab2:
         with st.form("form_expense"):
-            # Opsi "Gaji/Jatah Tim" Ditambahkan!
             cat_exp = st.selectbox("Ambil dari Dompet Mana?", ["Kas Studio", "Ops/Makan", "Gaji/Jatah Tim"])
             desc_exp = st.text_input("Keterangan (Misal: Bayar Gaji Rian)")
             amount_exp = st.number_input("Nominal Ditarik (Rp)", min_value=0, step=10000)
@@ -230,7 +229,7 @@ mvp_name = max(points_map, key=points_map.get) if points_map else MEMBERS[0]
 mvp_points = points_map.get(mvp_name, 0)
 
 c1, c2 = st.columns([1, 2])
-with c1: st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points} Jam Live )*\n\n🔥 Gacor parah!")
+with c1: st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points:.1f} Jam Live )*\n\n🔥 Gacor parah!")
 with c2: st.bar_chart(pd.DataFrame(list(points_map.items()), columns=["Anggota", "Total Jam"]).set_index("Anggota"), color="#819264")
 
 st.divider()
@@ -258,7 +257,8 @@ for m in MEMBERS:
     earned_base = base_per_person if pts > 0 else 0
     earned_bonus = pts * val_per_point
     is_mvp = " 👑" if m == mvp_name and pts > 0 else ""
-    table_html += f"<tr><td><strong>{m}{is_mvp}</strong></td><td>{pts} Jam</td><td>Rp {earned_base:,.0f}</td><td>Rp {earned_bonus:,.0f}</td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
+    # FORMAT PTS DENGAN .1f BIAR CUMA 1 ANGKA DI BELAKANG KOMA
+    table_html += f"<tr><td><strong>{m}{is_mvp}</strong></td><td>{pts:.1f} Jam</td><td>Rp {earned_base:,.0f}</td><td>Rp {earned_bonus:,.0f}</td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
 table_html += "</tbody></table></div>"
 st.markdown(table_html, unsafe_allow_html=True)
 
@@ -268,7 +268,7 @@ slip_name = st.selectbox("Cetak Struk Atas Nama:", MEMBERS)
 pts_slip = points_map.get(slip_name, 0)
 base_slip = base_per_person if pts_slip > 0 else 0
 bonus_slip = pts_slip * val_per_point
-html_slip = f"<div style='background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; max-width: 400px; margin: 0 auto; box-shadow: 0 8px 32px rgba(129, 146, 100, 0.15);'><h4 style='text-align: center; margin: 0 0 5px 0; color: #2c3322;'>🧾 SLIP GAJI PROJECT 4/4</h4><p style='text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;'>Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Nama:</span><span style='font-weight: 700; color: #2c3322;'>{slip_name}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Jam Live:</span><span style='font-weight: 700; color: #2c3322;'>{pts_slip} Jam</span></div><div style='border-bottom: 1px dashed #819264; margin-bottom: 15px;'></div><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Upah Dasar:</span><span style='color: #2c3322;'>Rp {base_slip:,.0f}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Bonus (Poin):</span><span style='color: #2c3322;'>Rp {bonus_slip:,.0f}</span></div><div style='background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;'><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>TOTAL HAK CAIR</h3><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>Rp {(base_slip + bonus_slip):,.0f}</h3></div></div>"
+html_slip = f"<div style='background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed #819264; max-width: 400px; margin: 0 auto; box-shadow: 0 8px 32px rgba(129, 146, 100, 0.15);'><h4 style='text-align: center; margin: 0 0 5px 0; color: #2c3322;'>🧾 SLIP GAJI PROJECT 4/4</h4><p style='text-align: center; font-size: 12px; color: #6a7a52; border-bottom: 1px solid #819264; padding-bottom: 10px; margin-bottom: 15px;'>Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Nama:</span><span style='font-weight: 700; color: #2c3322;'>{slip_name}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Jam Live:</span><span style='font-weight: 700; color: #2c3322;'>{pts_slip:.1f} Jam</span></div><div style='border-bottom: 1px dashed #819264; margin-bottom: 15px;'></div><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: #2c3322;'>Upah Dasar:</span><span style='color: #2c3322;'>Rp {base_slip:,.0f}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: #2c3322;'>Bonus (Poin):</span><span style='color: #2c3322;'>Rp {bonus_slip:,.0f}</span></div><div style='background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;'><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>TOTAL HAK CAIR</h3><h3 style='text-align: center; margin: 0; color: #2c3322; font-weight: 700;'>Rp {(base_slip + bonus_slip):,.0f}</h3></div></div>"
 st.markdown(html_slip, unsafe_allow_html=True)
 
 st.divider()
