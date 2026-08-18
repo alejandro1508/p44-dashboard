@@ -237,7 +237,7 @@ with col2:
 # BAGIAN TENGAH KHUSUS: ARENA VIP WARGA
 # ==========================================
 st.divider()
-st.markdown("<h3 class='glow-title' style='margin-bottom:20px;'>🎟️ ARENA VIP WARGA (LOYALTY PROGRAM)</h3>", unsafe_allow_html=True)
+st.markdown("<h3 class='glow-title' style='margin-bottom:20px;'>LOYALTY PROGRAM</h3>", unsafe_allow_html=True)
 
 if "gacha_prize" in st.session_state:
     st.markdown(f"""
@@ -249,7 +249,7 @@ if "gacha_prize" in st.session_state:
         </div>
     </div>
     """, unsafe_allow_html=True)
-    if st.button("Tutup Banner & Lanjut Nongkrong ☕", use_container_width=True):
+    if st.button("Tutup Banner", use_container_width=True):
         del st.session_state["gacha_prize"]
         del st.session_state["gacha_winner"]
         st.rerun()
@@ -277,7 +277,7 @@ else:
         
     with vip_c2:
         st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True) # Spacer
-        if st.button("Absen Nongkrong ☕", use_container_width=True):
+        if st.button("Absen Hadir", use_container_width=True):
             cek_hari_ini = now_time.strftime("%Y-%m-%d")
             if not df_tamu.empty and len(df_tamu[(df_tamu["Nama"] == tamu_dipilih) & (df_tamu["Aksi"] == "Hadir") & (df_tamu["Tanggal"].str.startswith(cek_hari_ini))]) > 0:
                 st.warning("Udah absen hari ini, Bang! Besok balik lagi ya.")
