@@ -48,13 +48,13 @@ st.markdown(f"""
         .on-air-badge {{ background-color: #ff4b4b; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; animation: blinker 1.2s linear infinite; display: inline-block; margin-bottom: 15px; box-shadow: 0 0 15px rgba(255, 75, 75, 0.5); }}
         .offline-badge {{ background-color: #6c757d; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; display: inline-block; margin-bottom: 15px; }}
         
-        [data-testid="stForm"] {{
+        [data-testid="stForm"], [data-testid="stMetric"] {{
             background: {card_bg} !important; backdrop-filter: blur(10px) !important;
             border-radius: 15px !important; border: 1px solid {border_color} !important;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
             padding: 20px !important; transition: all 0.3s ease-in-out !important; width: 100% !important; box-sizing: border-box !important;
         }}
-        [data-testid="stForm"]:hover {{ transform: translateY(-5px); }}
+        [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover {{ transform: translateY(-5px); }}
         
         .stButton > button {{
             background-color: {btn_bg} !important; color: #ffffff !important;
@@ -367,50 +367,20 @@ st.divider()
 st.subheader("💼 4. Brankas & Bagi Hasil Mingguan")
 kas_studio_minggu_ini = total_income * 0.30; kas_ops_minggu_ini = total_income * 0.20; team_share = total_income * 0.50
 
-# SISA SALDO MINGGU INI + ENDAPAN MINGGU LALU - PENGELUARAN MINGGU INI
 sisa_kas_final = kas_studio_minggu_ini + saldo_kas_lalu - total_out_kas
 sisa_ops_final = kas_ops_minggu_ini + saldo_ops_lalu - total_out_ops
 sisa_gaji = team_share - total_out_gaji
 
-# --- UI KOTAK BRANKAS CUSTOM (ANTI STREAMLIT METRIC BUG) ---
+# --- TAMPILAN ENDAPAN JADI TEKS INFO ---
+if saldo_kas_lalu > 0 or saldo_ops_lalu > 0:
+    st.markdown(f"<p style='color: {sec_text}; font-size: 14px; margin-bottom: 15px;'>💡 <b>Info:</b> Ada saldo bulan lalu yang ikut ditambahkan ke Brankas saat ini. <b>Kas Studio: Rp {saldo_kas_lalu:,.0f}</b> | <b>Ops/Makan: Rp {saldo_ops_lalu:,.0f}</b>.</p>", unsafe_allow_html=True)
+
+# --- BALIK KE KOTAK BAWAAN STREAMLIT (ST.METRIC) ---
 m1, m2, m3, m4 = st.columns(4)
-
-with m1:
-    st.markdown(f"""
-    <div style="background: {card_bg}; padding: 20px; border-radius: 12px; border: 1px solid {border_color}; height: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-        <p style="margin:0; font-size: 13px; color: {sec_text}; font-weight:600;">💰 Pemasukan (Minggu Ini)</p>
-        <h3 style="margin: 8px 0; color: {text_color}; font-size: 24px;">Rp {total_income:,.0f}</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
-with m2:
-    st.markdown(f"""
-    <div style="background: {card_bg}; padding: 20px; border-radius: 12px; border: 1px solid {border_color}; height: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-        <p style="margin:0; font-size: 13px; color: {sec_text}; font-weight:600;">🏢 Sisa Kas Studio</p>
-        <h3 style="margin: 8px 0; color: {text_color}; font-size: 24px;">Rp {sisa_kas_final:,.0f}</h3>
-        <p style="margin:0; font-size: 12px; color: #ff4b4b; font-weight:600;">🔻 Keluar: Rp {total_out_kas:,.0f}</p>
-        <p style="margin:0; font-size: 12px; color: #819264; font-weight:600;">➕ Endapan: Rp {saldo_kas_lalu:,.0f}</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with m3:
-    st.markdown(f"""
-    <div style="background: {card_bg}; padding: 20px; border-radius: 12px; border: 1px solid {border_color}; height: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-        <p style="margin:0; font-size: 13px; color: {sec_text}; font-weight:600;">☕ Sisa Ops/Makan</p>
-        <h3 style="margin: 8px 0; color: {text_color}; font-size: 24px;">Rp {sisa_ops_final:,.0f}</h3>
-        <p style="margin:0; font-size: 12px; color: #ff4b4b; font-weight:600;">🔻 Keluar: Rp {total_out_ops:,.0f}</p>
-        <p style="margin:0; font-size: 12px; color: #819264; font-weight:600;">➕ Endapan: Rp {saldo_ops_lalu:,.0f}</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with m4:
-    st.markdown(f"""
-    <div style="background: {card_bg}; padding: 20px; border-radius: 12px; border: 1px solid {border_color}; height: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-        <p style="margin:0; font-size: 13px; color: {sec_text}; font-weight:600;">👥 Sisa Jatah Tim</p>
-        <h3 style="margin: 8px 0; color: {text_color}; font-size: 24px;">Rp {sisa_gaji:,.0f}</h3>
-        <p style="margin:0; font-size: 12px; color: #ff4b4b; font-weight:600;">🔻 Keluar/Cair: Rp {total_out_gaji:,.0f}</p>
-    </div>
-    """, unsafe_allow_html=True)
+m1.metric("Total Pemasukan (Minggu Ini)", f"Rp {total_income:,.0f}")
+m2.metric("🏢 Sisa Kas Studio", f"Rp {sisa_kas_final:,.0f}", f"-Rp {total_out_kas:,.0f}" if total_out_kas > 0 else None)
+m3.metric("☕ Sisa Ops/Makan", f"Rp {sisa_ops_final:,.0f}", f"-Rp {total_out_ops:,.0f}" if total_out_ops > 0 else None)
+m4.metric("👥 Sisa Jatah Tim", f"Rp {sisa_gaji:,.0f}", f"-Rp {total_out_gaji:,.0f}" if total_out_gaji > 0 else None)
 
 base_pool = team_share * 0.40; live_pool = team_share * 0.60
 base_per_person = (base_pool / active_members_count) if active_members_count > 0 else 0
