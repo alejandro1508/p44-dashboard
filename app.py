@@ -74,7 +74,6 @@ st.markdown(f"""
         .premium-table tbody tr {{ box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; }}
         .premium-table tbody tr:hover {{ transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.12); }}
         
-        /* Hilangin semua border di td, cuma pake background-color */
         .premium-table td {{ padding: 16px 20px; background-color: {card_bg}; vertical-align: middle; border: none !important; }}
         .premium-table td:first-child {{ border-top-left-radius: 14px; border-bottom-left-radius: 14px; font-size: 17px; font-weight: 600; }}
         
@@ -320,7 +319,7 @@ if "gacha_prize" in st.session_state:
     if st.button("Tutup Banner & Lanjut Nongkrong ☕", use_container_width=True):
         del st.session_state["gacha_prize"]; del st.session_state["gacha_winner"]; st.rerun()
 else:
-    st.markdown(f"<div style='background: {card_bg}; padding:25px; border-radius:20px; border:2px solid {btn_bg}; box-shadow: 0 8px 32px 0 rgba(0,0,0, 0.1);'>", unsafe_allow_html=True)
+    st.markdown(f"<div style='background: {card_bg}; padding:25px; border-radius:20px; border:1px solid {border_color}; box-shadow: 0 8px 32px 0 rgba(0,0,0, 0.1);'>", unsafe_allow_html=True)
     vip_c1, vip_c2 = st.columns([1, 1])
     with vip_c1:
         tamu_dipilih = st.selectbox("Pilih Nama Warga VIP:", TAMU_VIP)
@@ -421,6 +420,40 @@ base_slip = base_per_person if pts_slip > 0 else 0
 bonus_slip = pts_slip * val_per_point
 html_slip = f"<div style='background: {card_bg}; backdrop-filter: blur(10px); padding: 25px; border-radius: 15px; border: 2px dashed {btn_bg}; max-width: 400px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);'><h4 style='text-align: center; margin: 0 0 5px 0; color: {text_color};'>🧾 SLIP GAJI PROJECT 4/4</h4><p style='text-align: center; font-size: 12px; color: {sec_text}; border-bottom: 1px solid {btn_bg}; padding-bottom: 10px; margin-bottom: 15px;'>Dicetak: {datetime.now(tz).strftime('%d %b %Y %H:%M')}</p><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: {text_color};'>Nama:</span><span style='font-weight: 700; color: {text_color};'>{slip_name}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: {text_color};'>Jam Live:</span><span style='font-weight: 700; color: {text_color};'>{pts_slip:.1f} Jam</span></div><div style='border-bottom: 1px dashed {btn_bg}; margin-bottom: 15px;'></div><div style='display: flex; justify-content: space-between; margin-bottom: 5px;'><span style='font-weight: 500; color: {text_color};'>Upah Dasar:</span><span style='color: {text_color};'>Rp {base_slip:,.0f}</span></div><div style='display: flex; justify-content: space-between; margin-bottom: 15px;'><span style='font-weight: 500; color: {text_color};'>Bonus (Poin):</span><span style='color: {text_color};'>Rp {bonus_slip:,.0f}</span></div><div style='background: rgba(129, 146, 100, 0.15); padding: 15px; border-radius: 8px;'><h3 style='text-align: center; margin: 0; color: {text_color}; font-weight: 700;'>TOTAL HAK CAIR</h3><h3 style='text-align: center; margin: 0; color: {text_color}; font-weight: 700;'>Rp {(base_slip + bonus_slip):,.0f}</h3></div></div>"
 st.markdown(html_slip, unsafe_allow_html=True)
+
+# --- FITUR TONGKRONGAN EXTRAS (GACHA PIKET & SPOTIFY) ---
+st.divider()
+st.subheader("🎲 5. Extras: Tongkrongan Vibes")
+ext1, ext2 = st.columns([1, 1])
+
+with ext1:
+    st.markdown(f"<div style='background: {card_bg}; padding: 25px; border-radius: 15px; border: 1px solid {border_color}; text-align: center; height: 100%;'>", unsafe_allow_html=True)
+    st.markdown(f"<h4 style='margin-top:0; color: {text_color};'>🧹 Gacha Piket Studio</h4>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: {sec_text}; font-size: 13px;'>Biar adil, biarkan sistem yang milih siapa yang harus beresin kabel, buang sampah, dan matiin lampu hari ini!</p>", unsafe_allow_html=True)
+    
+    if "korban_piket" in st.session_state:
+        st.markdown(f"<h2 style='color: #ff4b4b; font-weight: 800; padding: 10px; border: 2px dashed #ff4b4b; border-radius: 10px; display: inline-block; animation: pulseGlow 2s infinite;'>🚨 {st.session_state.korban_piket} 🚨</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: {text_color}; font-weight: 600;'>Selamat beres-beres, Bosku! Jangan kabur lu! 🤣</p>", unsafe_allow_html=True)
+        if st.button("Sudah Dikerjakan ✅", use_container_width=True):
+            del st.session_state["korban_piket"]
+            st.rerun()
+    else:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🎲 Undi Piket Sekarang!", use_container_width=True):
+            st.session_state["korban_piket"] = random.choice(MEMBERS)
+            st.balloons()
+            time.sleep(0.5)
+            st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with ext2:
+    st.markdown(f"<div style='background: {card_bg}; padding: 25px; border-radius: 15px; border: 1px solid {border_color}; height: 100%; text-align: center;'>", unsafe_allow_html=True)
+    st.markdown(f"<h4 style='margin-top:0; margin-bottom:15px; color: {text_color};'>🎵 Studio Jukebox</h4>", unsafe_allow_html=True)
+    # Embed Spotify (Lofi Beats)
+    spotify_html = '''<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/37i9dQZF1DWWQRwui0ExPn?utm_source=generator&theme=0" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>'''
+    st.markdown(spotify_html, unsafe_allow_html=True)
+    st.markdown(f"<p style='color: {sec_text}; font-size: 12px; margin-top: 10px;'>Konekin Bluetooth ke Speaker, play aja langsung dari sini sambil nyiapin alat live!</p>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 st.divider()
 st.subheader("⚙️ Panel Admin & Tutup Buku")
