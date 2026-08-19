@@ -28,7 +28,7 @@ else:
 
 st.markdown(f"""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
         html, body, [class*="css"]  {{ font-family: 'Poppins', sans-serif !important; color: {text_color} !important; }}
         .block-container {{ padding-left: 15px !important; padding-right: 15px !important; max-width: 100% !important; overflow-x: hidden !important; }}
         
@@ -48,13 +48,13 @@ st.markdown(f"""
         .on-air-badge {{ background-color: #ff4b4b; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; animation: blinker 1.2s linear infinite; display: inline-block; margin-bottom: 15px; box-shadow: 0 0 15px rgba(255, 75, 75, 0.5); }}
         .offline-badge {{ background-color: #6c757d; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; display: inline-block; margin-bottom: 15px; }}
         
-        [data-testid="stForm"], [data-testid="stMetric"] {{
+        [data-testid="stForm"] {{
             background: {card_bg} !important; backdrop-filter: blur(10px) !important;
             border-radius: 15px !important; border: 1px solid {border_color} !important;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
             padding: 20px !important; transition: all 0.3s ease-in-out !important; width: 100% !important; box-sizing: border-box !important;
         }}
-        [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover {{ transform: translateY(-5px); }}
+        [data-testid="stForm"]:hover {{ transform: translateY(-5px); }}
         
         .stButton > button {{
             background-color: {btn_bg} !important; color: #ffffff !important;
@@ -64,20 +64,28 @@ st.markdown(f"""
         .stButton > button:hover {{ transform: translateY(-3px) scale(1.02) !important; background-color: {btn_hover} !important; }}
         
         @keyframes pulseGlow {{ 0% {{ text-shadow: 0 0 5px {title_color}; }} 50% {{ text-shadow: 0 0 20px {title_color}; }} 100% {{ text-shadow: 0 0 5px {title_color}; }} }}
-        h3.glow-title {{ animation: pulseGlow 3s infinite alternate !important; color: {title_color} !important; text-align: center; font-weight: 700; margin-bottom: 5px; }}
+        h3.glow-title {{ animation: pulseGlow 3s infinite alternate !important; color: {title_color} !important; text-align: center; font-weight: 800; margin-bottom: 5px; }}
         
-        .table-responsive-wrapper {{ width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 15px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); margin: 25px 0; background-color: transparent; }}
-        .premium-table {{ width: 100%; min-width: 500px; border-collapse: collapse; font-size: 14px; text-align: left; background-color: {table_bg}; color: {text_color}; }}
-        .premium-table thead tr {{ background-color: {btn_bg}; color: #ffffff; text-align: left; font-weight: bold; }}
-        .premium-table th, .premium-table td {{ padding: 12px 15px; border-bottom: 1px solid {border_color}; color: {text_color}; }}
-        .premium-table tbody tr {{ transition: all 0.2s ease-in; }}
-        .premium-table tbody tr:hover {{ background-color: {table_hover}; }}
-        .col-cair {{ font-weight: 700; }}
+        /* --- TABEL UI PREMIUM FINTECH --- */
+        .table-responsive-wrapper {{ width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }}
+        .premium-table {{ width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0 12px; text-align: left; background-color: transparent; }}
+        .premium-table thead tr {{ background-color: transparent; color: {sec_text}; text-transform: uppercase; font-size: 13px; letter-spacing: 1px; font-weight: 600; }}
+        .premium-table th {{ padding: 0 20px; border: none; }}
+        .premium-table tbody tr {{ background-color: {card_bg}; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; border-radius: 15px; }}
+        .premium-table tbody tr:hover {{ transform: translateY(-4px) scale(1.01); box-shadow: 0 10px 25px rgba(0,0,0,0.12); background-color: {table_hover}; }}
+        .premium-table td {{ padding: 18px 20px; border-top: 1px solid {border_color}; border-bottom: 1px solid {border_color}; vertical-align: middle; }}
+        .premium-table td:first-child {{ border-left: 1px solid {border_color}; border-top-left-radius: 15px; border-bottom-left-radius: 15px; font-size: 18px; }}
+        .premium-table td:last-child {{ border-right: 1px solid {border_color}; border-top-right-radius: 15px; border-bottom-right-radius: 15px; overflow: hidden; }}
+        
+        .col-cair {{ font-size: 20px !important; font-weight: 800 !important; color: #ffffff !important; background: linear-gradient(135deg, {btn_bg}, {btn_hover}); text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }}
+        .badge-base {{ background: rgba(128,128,128,0.15); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 15px; border: 1px solid {border_color}; }}
+        .badge-bonus {{ background: rgba(212, 175, 55, 0.15); color: #D4AF37 !important; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 15px; border: 1px solid rgba(212, 175, 55, 0.3); }}
         
         /* Rank Colors */
-        .rank-mythic {{ color: #FF00FF; font-weight: 900; text-shadow: 0 0 5px rgba(255,0,255,0.5); }}
-        .rank-legend {{ color: #FFD700; font-weight: 800; }}
-        .rank-epic {{ color: #00FF00; font-weight: 700; }}
+        .rank-mythic {{ color: #FF00FF; font-weight: 900; text-shadow: 0 0 8px rgba(255,0,255,0.6); font-size: 16px; }}
+        .rank-legend {{ color: #FFD700; font-weight: 800; font-size: 16px; }}
+        .rank-epic {{ color: #00FF00; font-weight: 700; font-size: 15px; }}
+        .rank-elite {{ font-weight: 600; font-size: 15px; }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -100,7 +108,7 @@ def get_rank(hours):
     if hours >= 9: return "<span class='rank-mythic'>🐉 Mythical Glory</span>"
     elif hours >= 5: return "<span class='rank-legend'>🦁 Legend</span>"
     elif hours >= 1: return "<span class='rank-epic'>🦏 Epic</span>"
-    elif hours > 0: return "🗡️ Elite"
+    elif hours > 0: return "<span class='rank-elite'>🗡️ Elite</span>"
     else: return "🗿 Warrior"
 
 def get_safe_data(conn, sheet_name, cols):
@@ -371,11 +379,9 @@ sisa_kas_final = kas_studio_minggu_ini + saldo_kas_lalu - total_out_kas
 sisa_ops_final = kas_ops_minggu_ini + saldo_ops_lalu - total_out_ops
 sisa_gaji = team_share - total_out_gaji
 
-# --- TAMPILAN ENDAPAN JADI TEKS INFO ---
 if saldo_kas_lalu > 0 or saldo_ops_lalu > 0:
     st.markdown(f"<p style='color: {sec_text}; font-size: 14px; margin-bottom: 15px;'>💡 <b>Info:</b> Ada saldo bulan lalu yang ikut ditambahkan ke Brankas saat ini. <b>Kas Studio: Rp {saldo_kas_lalu:,.0f}</b> | <b>Ops/Makan: Rp {saldo_ops_lalu:,.0f}</b>.</p>", unsafe_allow_html=True)
 
-# --- BALIK KE KOTAK BAWAAN STREAMLIT (ST.METRIC) ---
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Total Pemasukan (Minggu Ini)", f"Rp {total_income:,.0f}")
 m2.metric("🏢 Sisa Kas Studio", f"Rp {sisa_kas_final:,.0f}", f"-Rp {total_out_kas:,.0f}" if total_out_kas > 0 else None)
@@ -386,13 +392,14 @@ base_pool = team_share * 0.40; live_pool = team_share * 0.60
 base_per_person = (base_pool / active_members_count) if active_members_count > 0 else 0
 val_per_point = (live_pool / total_points) if total_points > 0 else 0
 
+# --- TABEL HTML PREMIUM YANG BARU ---
 table_html = f"<div class='table-responsive-wrapper'><table class='premium-table'><thead><tr><th>Anggota</th><th>Pangkat (Rank)</th><th>Poin Jam</th><th>Upah Dasar</th><th>Bonus Jam</th><th>TOTAL HAK CAIR</th></tr></thead><tbody>"
 for m in MEMBERS:
     pts = points_map[m]
     earned_base = base_per_person if pts > 0 else 0
     earned_bonus = pts * val_per_point
     is_mvp = " 👑" if m == mvp_name and pts > 0 else ""
-    table_html += f"<tr><td><strong>{m}{is_mvp}</strong></td><td>{get_rank(pts)}</td><td>{pts:.1f} Jam</td><td>Rp {earned_base:,.0f}</td><td>Rp {earned_bonus:,.0f}</td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
+    table_html += f"<tr><td><strong style='font-size: 18px;'>{m}{is_mvp}</strong></td><td>{get_rank(pts)}</td><td style='font-weight: 600; font-size: 16px;'>{pts:.1f} Jam</td><td><span class='badge-base'>Rp {earned_base:,.0f}</span></td><td><span class='badge-bonus'>+ Rp {earned_bonus:,.0f}</span></td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
 table_html += "</tbody></table></div>"
 st.markdown(table_html, unsafe_allow_html=True)
 
