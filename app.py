@@ -48,13 +48,14 @@ st.markdown(f"""
         .on-air-badge {{ background-color: #ff4b4b; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; animation: blinker 1.2s linear infinite; display: inline-block; margin-bottom: 15px; box-shadow: 0 0 15px rgba(255, 75, 75, 0.5); }}
         .offline-badge {{ background-color: #6c757d; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; display: inline-block; margin-bottom: 15px; }}
         
-        [data-testid="stForm"] {{
+        /* KODE YANG ILANG KEMAREN GUA BALIKIN (stMetric) BUAT KOTAK BRANKAS */
+        [data-testid="stForm"], [data-testid="stMetric"] {{
             background: {card_bg} !important; backdrop-filter: blur(10px) !important;
             border-radius: 15px !important; border: 1px solid {border_color} !important;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15) !important;
             padding: 20px !important; transition: all 0.3s ease-in-out !important; width: 100% !important; box-sizing: border-box !important;
         }}
-        [data-testid="stForm"]:hover {{ transform: translateY(-5px); }}
+        [data-testid="stForm"]:hover, [data-testid="stMetric"]:hover {{ transform: translateY(-5px); }}
         
         .stButton > button {{
             background-color: {btn_bg} !important; color: #ffffff !important;
@@ -66,26 +67,36 @@ st.markdown(f"""
         @keyframes pulseGlow {{ 0% {{ text-shadow: 0 0 5px {title_color}; }} 50% {{ text-shadow: 0 0 20px {title_color}; }} 100% {{ text-shadow: 0 0 5px {title_color}; }} }}
         h3.glow-title {{ animation: pulseGlow 3s infinite alternate !important; color: {title_color} !important; text-align: center; font-weight: 800; margin-bottom: 5px; }}
         
-        /* --- TABEL UI PREMIUM FINTECH --- */
+        /* --- TABEL UI PREMIUM FINTECH YANG UDAH PRESISI --- */
         .table-responsive-wrapper {{ width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }}
-        .premium-table {{ width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0 12px; text-align: left; background-color: transparent; }}
-        .premium-table thead tr {{ background-color: transparent; color: {sec_text}; text-transform: uppercase; font-size: 13px; letter-spacing: 1px; font-weight: 600; }}
-        .premium-table th {{ padding: 0 20px; border: none; }}
-        .premium-table tbody tr {{ background-color: {card_bg}; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; border-radius: 15px; }}
-        .premium-table tbody tr:hover {{ transform: translateY(-4px) scale(1.01); box-shadow: 0 10px 25px rgba(0,0,0,0.12); background-color: {table_hover}; }}
-        .premium-table td {{ padding: 18px 20px; border-top: 1px solid {border_color}; border-bottom: 1px solid {border_color}; vertical-align: middle; }}
-        .premium-table td:first-child {{ border-left: 1px solid {border_color}; border-top-left-radius: 15px; border-bottom-left-radius: 15px; font-size: 18px; }}
-        .premium-table td:last-child {{ border-right: 1px solid {border_color}; border-top-right-radius: 15px; border-bottom-right-radius: 15px; overflow: hidden; }}
+        .premium-table {{ width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0 10px; text-align: left; background-color: transparent; }}
+        .premium-table thead tr {{ color: {sec_text}; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; font-weight: 600; }}
+        .premium-table th {{ padding: 10px 20px; border: none; }}
+        .premium-table tbody tr {{ box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.2s ease; }}
+        .premium-table tbody tr:hover {{ transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }}
+        .premium-table td {{ padding: 15px 20px; background-color: {card_bg}; vertical-align: middle; border-top: 1px solid {border_color}; border-bottom: 1px solid {border_color}; }}
+        .premium-table td:first-child {{ border-left: 1px solid {border_color}; border-top-left-radius: 12px; border-bottom-left-radius: 12px; font-size: 16px; }}
         
-        .col-cair {{ font-size: 20px !important; font-weight: 800 !important; color: #ffffff !important; background: linear-gradient(135deg, {btn_bg}, {btn_hover}); text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }}
-        .badge-base {{ background: rgba(128,128,128,0.15); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 15px; border: 1px solid {border_color}; }}
-        .badge-bonus {{ background: rgba(212, 175, 55, 0.15); color: #D4AF37 !important; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 15px; border: 1px solid rgba(212, 175, 55, 0.3); }}
+        /* Perbaikan Kolom TOTAL HAK CAIR Biar Mulus 100% tanpa celah putih */
+        .premium-table td.col-cair {{ 
+            background: linear-gradient(135deg, {btn_bg}, {btn_hover}); 
+            color: #ffffff !important; 
+            font-size: 18px !important; 
+            font-weight: 800 !important; 
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3); 
+            border: none; 
+            border-top-right-radius: 12px; 
+            border-bottom-right-radius: 12px; 
+        }}
+        
+        .badge-base {{ background: rgba(128,128,128,0.15); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid {border_color}; }}
+        .badge-bonus {{ background: rgba(212, 175, 55, 0.15); color: #D4AF37 !important; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 14px; border: 1px solid rgba(212, 175, 55, 0.3); }}
         
         /* Rank Colors */
-        .rank-mythic {{ color: #FF00FF; font-weight: 900; text-shadow: 0 0 8px rgba(255,0,255,0.6); font-size: 16px; }}
-        .rank-legend {{ color: #FFD700; font-weight: 800; font-size: 16px; }}
-        .rank-epic {{ color: #00FF00; font-weight: 700; font-size: 15px; }}
-        .rank-elite {{ font-weight: 600; font-size: 15px; }}
+        .rank-mythic {{ color: #FF00FF; font-weight: 900; text-shadow: 0 0 8px rgba(255,0,255,0.6); font-size: 15px; }}
+        .rank-legend {{ color: #FFD700; font-weight: 800; font-size: 15px; }}
+        .rank-epic {{ color: #00FF00; font-weight: 700; font-size: 14px; }}
+        .rank-elite {{ font-weight: 600; font-size: 14px; }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -392,14 +403,14 @@ base_pool = team_share * 0.40; live_pool = team_share * 0.60
 base_per_person = (base_pool / active_members_count) if active_members_count > 0 else 0
 val_per_point = (live_pool / total_points) if total_points > 0 else 0
 
-# --- TABEL HTML PREMIUM YANG BARU ---
 table_html = f"<div class='table-responsive-wrapper'><table class='premium-table'><thead><tr><th>Anggota</th><th>Pangkat (Rank)</th><th>Poin Jam</th><th>Upah Dasar</th><th>Bonus Jam</th><th>TOTAL HAK CAIR</th></tr></thead><tbody>"
 for m in MEMBERS:
     pts = points_map[m]
     earned_base = base_per_person if pts > 0 else 0
     earned_bonus = pts * val_per_point
     is_mvp = " 👑" if m == mvp_name and pts > 0 else ""
-    table_html += f"<tr><td><strong style='font-size: 18px;'>{m}{is_mvp}</strong></td><td>{get_rank(pts)}</td><td style='font-weight: 600; font-size: 16px;'>{pts:.1f} Jam</td><td><span class='badge-base'>Rp {earned_base:,.0f}</span></td><td><span class='badge-bonus'>+ Rp {earned_bonus:,.0f}</span></td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
+    # PENGGUNAAN CLASS col-cair DI-UBAH BIAR BACKGROUNDNYA RAPIH DAN MENEMPEL
+    table_html += f"<tr><td><strong>{m}{is_mvp}</strong></td><td>{get_rank(pts)}</td><td>{pts:.1f} Jam</td><td><span class='badge-base'>Rp {earned_base:,.0f}</span></td><td><span class='badge-bonus'>+ Rp {earned_bonus:,.0f}</span></td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
 table_html += "</tbody></table></div>"
 st.markdown(table_html, unsafe_allow_html=True)
 
