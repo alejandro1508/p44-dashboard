@@ -95,7 +95,7 @@ TAMU_VIP = ["Fauzi", "Hakim", "Rayhan", "Rusdi", "Naufal"]
 TARGET_CUAN = 1500000
 TARGET_POIN_VIP = 7
 
-# --- SISTEM PANGKAT (MOBILE LEGENDS STYLE) ---
+# --- SISTEM PANGKAT ---
 def get_rank(hours):
     if hours >= 9: return "<span class='rank-mythic'>🐉 Mythical Glory</span>"
     elif hours >= 5: return "<span class='rank-legend'>🦁 Legend</span>"
@@ -115,7 +115,6 @@ df_setting = get_safe_data(conn, "Pengaturan", [0, 1])
 df_expense = get_safe_data(conn, "Pengeluaran", [0, 1, 2, 3])
 df_tamu = get_safe_data(conn, "Tamu", [0, 1, 2, 3])
 
-# SAPU JAGAT ANTI ERROR (Force to String)
 if df_att.empty and not 'Tanggal' in df_att.columns: df_att = pd.DataFrame(columns=["Tanggal", "Nama", "Jam Masuk", "Jam Keluar", "Poin"])
 else: df_att = df_att.astype(str).replace(['nan', 'NaN', '<NA>'], '')
 
@@ -128,7 +127,7 @@ else: df_tamu = df_tamu.astype(str).replace(['nan', 'NaN', '<NA>'], '')
 if df_income.empty and not 'Nominal' in df_income.columns: df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
 if df_expense.empty and not 'Nominal' in df_expense.columns: df_expense = pd.DataFrame(columns=["Tanggal", "Kategori", "Keterangan", "Nominal"])
 
-# BACA SALDO ENDAPAN MINGGU LALU
+# BACA SALDO ENDAPAN
 saldo_kas_lalu = 0
 saldo_ops_lalu = 0
 if not df_setting.empty:
@@ -139,7 +138,6 @@ if not df_setting.empty:
 
 total_income = pd.to_numeric(df_income["Nominal"], errors='coerce').fillna(0).sum() if not df_income.empty else 0
 
-# KALKULASI PENGELUARAN MINGGU INI
 if not df_expense.empty: df_expense["Nominal"] = pd.to_numeric(df_expense["Nominal"], errors='coerce').fillna(0)
 total_out_kas = df_expense[df_expense["Kategori"] == "Kas Studio"]["Nominal"].sum() if not df_expense.empty else 0
 total_out_ops = df_expense[df_expense["Kategori"] == "Ops/Makan"]["Nominal"].sum() if not df_expense.empty else 0
@@ -369,15 +367,19 @@ st.divider()
 st.subheader("💼 4. Brankas & Bagi Hasil Mingguan")
 kas_studio_minggu_ini = total_income * 0.30; kas_ops_minggu_ini = total_income * 0.20; team_share = total_income * 0.50
 
-# SISA SALDO MINGGU INI + ENDAPAN MINGGU LALU - PENGELUARAN MINGGU INI
 sisa_kas_final = kas_studio_minggu_ini + saldo_kas_lalu - total_out_kas
 sisa_ops_final = kas_ops_minggu_ini + saldo_ops_lalu - total_out_ops
 sisa_gaji = team_share - total_out_gaji
 
+# --- LOGIKA TAMPILAN METRIC DIPERBAIKI ---
+# Kalau ada saldo endapan, tampilin di judul kotaknya, biar pengeluaran (minus) tetep nongol warna merah di bawahnya.
+lbl_kas = f"🏢 Sisa Kas (+Endapan Rp {saldo_kas_lalu:,.0f})" if saldo_kas_lalu > 0 else "🏢 Sisa Kas Studio"
+lbl_ops = f"☕ Sisa Ops (+Endapan Rp {saldo_ops_lalu:,.0f})" if saldo_ops_lalu > 0 else "☕ Sisa Ops/Makan"
+
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Total Pemasukan (Minggu Ini)", f"Rp {total_income:,.0f}")
-m2.metric("🏢 Total Kas Studio", f"Rp {sisa_kas_final:,.0f}", f"Termasuk endapan Rp {saldo_kas_lalu:,.0f}")
-m3.metric("☕ Total Ops/Makan", f"Rp {sisa_ops_final:,.0f}", f"Termasuk endapan Rp {saldo_ops_lalu:,.0f}")
+m2.metric(lbl_kas, f"Rp {sisa_kas_final:,.0f}", f"-Rp {total_out_kas:,.0f}" if total_out_kas > 0 else "")
+m3.metric(lbl_ops, f"Rp {sisa_ops_final:,.0f}", f"-Rp {total_out_ops:,.0f}" if total_out_ops > 0 else "")
 m4.metric("👥 Sisa Jatah Tim", f"Rp {sisa_gaji:,.0f}", f"-Rp {total_out_gaji:,.0f}" if total_out_gaji > 0 else "")
 
 base_pool = team_share * 0.40; live_pool = team_share * 0.60
@@ -431,7 +433,6 @@ with adm2:
                 if pass_tutup == "ALE1508":
                     success = False
                     try:
-                        # 1. Simpan Saldo Sisa ke Pengaturan
                         df_set = df_setting.copy()
                         idx_kas = df_set.index[df_set["Parameter"] == "SALDO_KAS"].tolist()
                         if idx_kas: df_set.at[idx_kas[0], "Value"] = str(sisa_kas_final)
@@ -442,8 +443,6 @@ with adm2:
                         else: df_set = pd.concat([df_set, pd.DataFrame([{"Parameter": "SALDO_OPS", "Value": str(sisa_ops_final)}])], ignore_index=True)
                         
                         conn.update(worksheet="Pengaturan", data=df_set)
-                        
-                        # 2. Kosongin Data Transaksi & Absen (Pake trick df kosong)
                         conn.update(worksheet="Pemasukan", data=df_income.iloc[0:0])
                         conn.update(worksheet="Pengeluaran", data=df_expense.iloc[0:0])
                         conn.update(worksheet="Absensi", data=df_att.iloc[0:0])
@@ -453,9 +452,6 @@ with adm2:
                         st.error(f"Gagal nutup buku. Error sistem: {e}")
                     
                     if success:
-                        st.cache_data.clear()
-                        st.success("✅ TUTUP BUKU BERHASIL! Saldo udah disimpan, absen udah di-reset. Siap tempur minggu depan!")
-                        time.sleep(2)
-                        st.rerun()
+                        st.cache_data.clear(); st.success("✅ TUTUP BUKU BERHASIL! Saldo udah disimpan, absen udah di-reset. Siap tempur minggu depan!"); time.sleep(2); st.rerun()
                 else:
                     st.error("❌ Password Master Salah!")
