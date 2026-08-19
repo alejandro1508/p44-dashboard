@@ -107,19 +107,13 @@ TAMU_VIP = ["Fauzi", "Hakim", "Rayhan", "Rusdi", "Naufal"]
 TARGET_CUAN = 1500000
 TARGET_POIN_VIP = 7
 
-# --- SISTEM PANGKAT (DENGAN DESAIN BADGE PREMIUM) ---
 def get_rank(hours):
     badge_style = "display: inline-block; padding: 6px 16px; border-radius: 50px; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"
-    if hours >= 9:
-        return f"<span style='{badge_style} background: linear-gradient(135deg, #8A2BE2 0%, #FF1493 100%); color: white; border: 1px solid #FF69B4;'>🐉 MYTHICAL GLORY</span>"
-    elif hours >= 5:
-        return f"<span style='{badge_style} background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #4A3000; border: 1px solid #FFD700;'>🦁 LEGEND</span>"
-    elif hours >= 1:
-        return f"<span style='{badge_style} background: linear-gradient(135deg, #32CD32 0%, #008000 100%); color: white; border: 1px solid #90EE90;'>🦏 EPIC</span>"
-    elif hours > 0:
-        return f"<span style='{badge_style} background: linear-gradient(135deg, #1E90FF 0%, #0000CD 100%); color: white; border: 1px solid #87CEFA;'>🗡️ ELITE</span>"
-    else:
-        return f"<span style='{badge_style} background: linear-gradient(135deg, #A9A9A9 0%, #696969 100%); color: white; border: 1px solid #D3D3D3;'>🗿 WARRIOR</span>"
+    if hours >= 9: return f"<span style='{badge_style} background: linear-gradient(135deg, #8A2BE2 0%, #FF1493 100%); color: white; border: 1px solid #FF69B4;'>🐉 MYTHICAL GLORY</span>"
+    elif hours >= 5: return f"<span style='{badge_style} background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #4A3000; border: 1px solid #FFD700;'>🦁 LEGEND</span>"
+    elif hours >= 1: return f"<span style='{badge_style} background: linear-gradient(135deg, #32CD32 0%, #008000 100%); color: white; border: 1px solid #90EE90;'>🦏 EPIC</span>"
+    elif hours > 0: return f"<span style='{badge_style} background: linear-gradient(135deg, #1E90FF 0%, #0000CD 100%); color: white; border: 1px solid #87CEFA;'>🗡️ ELITE</span>"
+    else: return f"<span style='{badge_style} background: linear-gradient(135deg, #A9A9A9 0%, #696969 100%); color: white; border: 1px solid #D3D3D3;'>🗿 WARRIOR</span>"
 
 def get_safe_data(conn, sheet_name, cols):
     try: return conn.read(worksheet=sheet_name, usecols=cols, ttl=5).dropna(how="all")
@@ -145,7 +139,6 @@ else: df_tamu = df_tamu.astype(str).replace(['nan', 'NaN', '<NA>'], '')
 if df_income.empty and not 'Nominal' in df_income.columns: df_income = pd.DataFrame(columns=["Tanggal", "Keterangan", "Nominal"])
 if df_expense.empty and not 'Nominal' in df_expense.columns: df_expense = pd.DataFrame(columns=["Tanggal", "Kategori", "Keterangan", "Nominal"])
 
-# BACA SALDO ENDAPAN
 saldo_kas_lalu = 0
 saldo_ops_lalu = 0
 if not df_setting.empty:
@@ -304,8 +297,11 @@ with col2:
                         if success: st.cache_data.clear(); st.snow(); time.sleep(0.5); st.rerun()
         else: st.warning("Studio sudah kosong.")
 
+# =========================================================
+# --- PEROMBAKAN TOTAL UI VIP LOUNGE (SULTAN EDITION) ---
+# =========================================================
 st.divider()
-st.markdown("<h3 class='glow-title' style='margin-bottom:20px;'>🎟️ ARENA VIP WARGA (LOYALTY PROGRAM)</h3>", unsafe_allow_html=True)
+
 if "gacha_prize" in st.session_state:
     st.markdown(f"""
     <div style='background:linear-gradient(135deg, #FFD700, #F5A623); padding:40px 20px; border-radius:20px; text-align:center; color:#2c3322; animation: pulseGlow 2s infinite alternate; margin-bottom:20px; box-shadow: 0 10px 40px rgba(212, 175, 55, 0.4); border: 2px solid #fff;'>
@@ -319,24 +315,48 @@ if "gacha_prize" in st.session_state:
     if st.button("Tutup Banner & Lanjut Nongkrong ☕", use_container_width=True):
         del st.session_state["gacha_prize"]; del st.session_state["gacha_winner"]; st.rerun()
 else:
-    st.markdown(f"<div style='background: {card_bg}; padding:25px; border-radius:20px; border:1px solid {border_color}; box-shadow: 0 8px 32px 0 rgba(0,0,0, 0.1);'>", unsafe_allow_html=True)
-    vip_c1, vip_c2 = st.columns([1, 1])
+    # 1. Bikin Header Title yang Elite
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 25px;">
+        <h2 style="color: #D4AF37; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 15px rgba(212,175,55,0.4); margin-bottom: 0;">👑 VIP LOUNGE 👑</h2>
+        <p style="color: #819264; font-size: 15px; font-weight: 600; margin-top: 5px;">Loyalty Program Spesial Warga 4/4</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 2. Bikin Background Container Hitam/Gold untuk VIP Area
+    bg_vip = "rgba(25, 25, 25, 0.95)" if dark_mode else "rgba(245, 240, 225, 0.9)"
+    st.markdown(f"""
+    <div style="background: {bg_vip}; border-radius: 20px; padding: 25px; border: 2px solid #D4AF37; box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px;">
+    """, unsafe_allow_html=True)
+    
+    vip_c1, vip_c2 = st.columns([1.2, 1])
+    
     with vip_c1:
-        tamu_dipilih = st.selectbox("Pilih Nama Warga VIP:", TAMU_VIP)
+        st.markdown(f"<p style='margin-bottom: 5px; font-size: 14px; color: {text_color}; font-weight: 600;'>Pilih Nama Sultan:</p>", unsafe_allow_html=True)
+        tamu_dipilih = st.selectbox("Nama VIP", TAMU_VIP, label_visibility="collapsed")
+        
         poin_sekarang = poin_tamu.get(tamu_dipilih, 0)
         pct_tamu = min((poin_sekarang / TARGET_POIN_VIP) * 100, 100)
-        warna_bar = "#FFD700" if poin_sekarang >= TARGET_POIN_VIP else btn_bg
+        
+        warna_bar = "linear-gradient(90deg, #FFD700, #FF8C00)" if poin_sekarang >= TARGET_POIN_VIP else "linear-gradient(90deg, #819264, #A3B18A)"
+        glow_bar = "0 0 15px rgba(255,215,0,0.6)" if poin_sekarang >= TARGET_POIN_VIP else "none"
+        
+        # 3. Custom Progress Bar Ala Game HUD
         st.markdown(f"""
-        <div style="text-align:center; margin-bottom:15px; padding: 15px; background: rgba(0,0,0,0.1); border-radius: 10px;">
-            <p style="margin:0; font-weight:600; color:{text_color}; font-size: 16px;">Progress Kedatangan: {poin_sekarang} / {TARGET_POIN_VIP} Hari</p>
-            <div style="background:rgba(128,128,128,0.2); border-radius:10px; height:20px; margin-top:10px;">
-                <div style="background:{warna_bar}; width:{pct_tamu}%; height:100%; border-radius:10px; transition: width 0.5s;"></div>
+        <div style="margin-top: 15px; padding: 20px; background: rgba(0,0,0,0.05); border-radius: 15px; border: 1px solid rgba(212,175,55,0.3);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-weight: 700; font-size: 14px; color: {text_color};">🌟 Poin Kedatangan</span>
+                <span style="font-weight: 800; color: #D4AF37; font-size: 16px;">{poin_sekarang} / {TARGET_POIN_VIP} Hari</span>
+            </div>
+            <div style="background: rgba(0,0,0,0.15); border-radius: 50px; height: 24px; padding: 4px;">
+                <div style="background: {warna_bar}; width: {pct_tamu}%; height: 100%; border-radius: 50px; box-shadow: {glow_bar}; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);"></div>
             </div>
         </div>
         """, unsafe_allow_html=True)
+
     with vip_c2:
-        st.markdown("<div style='height: 25px;'></div>", unsafe_allow_html=True)
-        if st.button("Absen Nongkrong ☕", use_container_width=True):
+        st.markdown(f"<p style='margin-bottom: 5px; font-size: 14px; color: {text_color}; font-weight: 600;'>Aksi:</p>", unsafe_allow_html=True)
+        if st.button("☕ Absen Nongkrong", use_container_width=True):
             cek_hari_ini = now_time.strftime("%Y-%m-%d")
             if not df_tamu.empty and len(df_tamu[(df_tamu["Nama"] == tamu_dipilih) & (df_tamu["Aksi"] == "Hadir") & (df_tamu["Tanggal"].str.startswith(cek_hari_ini))]) > 0:
                 st.warning("Udah absen hari ini, Bang! Besok balik lagi ya.")
@@ -346,11 +366,32 @@ else:
                     conn.update(worksheet="Tamu", data=pd.concat([df_tamu, new_row], ignore_index=True))
                     st.cache_data.clear(); st.success(f"Mantap, {tamu_dipilih}! Poin berhasil masuk."); time.sleep(1); st.rerun()
                 except: st.error("Gagal nyimpen data.")
-        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+                
+        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+        
+        # 4. Gacha Button dengan Animasi Ekstrem kalau Aktif
         if poin_sekarang >= TARGET_POIN_VIP:
-            st.markdown("""<style>.btn-gacha > button { background: linear-gradient(45deg, #FFD700, #F5A623) !important; color: #2c3322 !important; border: 2px solid #2c3322 !important; font-size: 18px !important; animation: pulseGlow 1.5s infinite alternate; }</style>""", unsafe_allow_html=True)
-            st.markdown("<div class='btn-gacha'>", unsafe_allow_html=True)
-            if st.button("🎰 SPIN GACHA SEKARANG!", use_container_width=True):
+            st.markdown("""
+            <style>
+            .btn-gacha-sultan > button {
+                background: linear-gradient(45deg, #FFD700, #FF8C00, #FFD700) !important;
+                background-size: 200% 200% !important;
+                color: #000000 !important; 
+                border: 2px solid #FFFFFF !important; 
+                border-radius: 12px !important;
+                font-size: 18px !important; 
+                font-weight: 800 !important;
+                text-transform: uppercase;
+                box-shadow: 0 0 25px rgba(255, 215, 0, 0.6) !important;
+                animation: gradientMove 3s ease infinite, pulseSultan 1.2s infinite alternate !important;
+                padding: 15px 0 !important;
+            }
+            @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+            @keyframes pulseSultan { from { transform: scale(1); } to { transform: scale(1.04); } }
+            </style>
+            """, unsafe_allow_html=True)
+            st.markdown("<div class='btn-gacha-sultan'>", unsafe_allow_html=True)
+            if st.button("🎰 SPIN GACHA SULTAN!", use_container_width=True):
                 hadiah_normal = ["Aroma Mile", "Camel Intense Blue", "Camel Option Purple", "Evo Diplomat", "Twizz Purple", "Aroma Bold", "Win Click Berry"]
                 hadiah_jackpot = ["Sampoerna Mild (Jackpot!)", "LA Purple (Jackpot!)", "Dunhill Fine Cut Mild (Jackpot!)"]
                 dapet_hadiah = random.choices(hadiah_normal + hadiah_jackpot, weights=[12.8]*7 + [3.3]*3, k=1)[0]
@@ -361,8 +402,12 @@ else:
                     st.balloons(); time.sleep(0.5); st.rerun()
                 except: st.error("Sistem Gacha sibuk!")
             st.markdown("</div>", unsafe_allow_html=True)
-        else: st.button("🎰 SPIN GACHA SEKARANG!", disabled=True, use_container_width=True, help="Penuhi dulu bar poinnya!")
-    st.markdown("</div>", unsafe_allow_html=True)
+        else:
+            st.button("🔒 Poin Kurang (Kumpul Dulu)", disabled=True, use_container_width=True)
+            
+    st.markdown("</div>", unsafe_allow_html=True) # Tutup Background Hitam/Gold VIP
+
+# =========================================================
 
 st.divider()
 st.subheader("📊 3. Statistik & Keuangan Studio")
@@ -423,7 +468,7 @@ st.markdown(html_slip, unsafe_allow_html=True)
 
 # --- FITUR TONGKRONGAN EXTRAS (GACHA PIKET & SPOTIFY) ---
 st.divider()
-st.subheader("Extras")
+st.subheader("🎲 5. Extras: Tongkrongan Vibes")
 ext1, ext2 = st.columns([1, 1])
 
 with ext1:
@@ -433,7 +478,7 @@ with ext1:
     
     if "korban_piket" in st.session_state:
         st.markdown(f"<h2 style='color: #ff4b4b; font-weight: 800; padding: 10px; border: 2px dashed #ff4b4b; border-radius: 10px; display: inline-block; animation: pulseGlow 2s infinite;'>🚨 {st.session_state.korban_piket} 🚨</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: {text_color}; font-weight: 600;'>Selamat beres-beres</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: {text_color}; font-weight: 600;'>Selamat beres-beres, Bosku! Jangan kabur lu! 🤣</p>", unsafe_allow_html=True)
         if st.button("Sudah Dikerjakan ✅", use_container_width=True):
             del st.session_state["korban_piket"]
             st.rerun()
