@@ -356,7 +356,7 @@ else:
 
     with vip_c2:
         st.markdown(f"<p style='margin-bottom: 5px; font-size: 14px; color: {text_color}; font-weight: 600;'>Aksi:</p>", unsafe_allow_html=True)
-        if st.button("☕ Absen Nongkrong", use_container_width=True):
+        if st.button("Absen", use_container_width=True):
             cek_hari_ini = now_time.strftime("%Y-%m-%d")
             if not df_tamu.empty and len(df_tamu[(df_tamu["Nama"] == tamu_dipilih) & (df_tamu["Aksi"] == "Hadir") & (df_tamu["Tanggal"].str.startswith(cek_hari_ini))]) > 0:
                 st.warning("Udah absen hari ini, Bang! Besok balik lagi ya.")
@@ -403,14 +403,14 @@ else:
                 except: st.error("Sistem Gacha sibuk!")
             st.markdown("</div>", unsafe_allow_html=True)
         else:
-            st.button("🔒 Poin Kurang (Kumpul Dulu)", disabled=True, use_container_width=True)
+            st.button("🔒 Poin Kurang", disabled=True, use_container_width=True)
             
     st.markdown("</div>", unsafe_allow_html=True) # Tutup Background Hitam/Gold VIP
 
 # =========================================================
 
 st.divider()
-st.subheader("📊 3. Statistik & Keuangan Studio")
+st.subheader("📊 Statistik & Keuangan Studio")
 
 if "Poin" in df_att.columns: df_att["Poin"] = pd.to_numeric(df_att["Poin"], errors='coerce').fillna(0)
 total_points = df_att["Poin"].sum() if "Poin" in df_att.columns else 0
@@ -427,7 +427,7 @@ with c1:
 with c2: st.bar_chart(pd.DataFrame(list(points_map.items()), columns=["Anggota", "Total Jam"]).set_index("Anggota"), color=btn_bg)
 
 st.divider()
-st.subheader("💼 4. Brankas & Bagi Hasil Mingguan")
+st.subheader("💼 Brankas & Bagi Hasil Mingguan")
 kas_studio_minggu_ini = total_income * 0.30; kas_ops_minggu_ini = total_income * 0.20; team_share = total_income * 0.50
 
 sisa_kas_final = kas_studio_minggu_ini + saldo_kas_lalu - total_out_kas
@@ -478,7 +478,7 @@ with ext1:
     
     if "korban_piket" in st.session_state:
         st.markdown(f"<h2 style='color: #ff4b4b; font-weight: 800; padding: 10px; border: 2px dashed #ff4b4b; border-radius: 10px; display: inline-block; animation: pulseGlow 2s infinite;'>🚨 {st.session_state.korban_piket} 🚨</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: {text_color}; font-weight: 600;'>Selamat beres-beres, Bosku! Jangan kabur lu! 🤣</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: {text_color}; font-weight: 600;'>Selamat beres-beres</p>", unsafe_allow_html=True)
         if st.button("Sudah Dikerjakan ✅", use_container_width=True):
             del st.session_state["korban_piket"]
             st.rerun()
