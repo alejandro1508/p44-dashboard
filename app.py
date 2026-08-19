@@ -423,7 +423,7 @@ st.markdown(html_slip, unsafe_allow_html=True)
 
 # --- FITUR TONGKRONGAN EXTRAS (GACHA PIKET & SPOTIFY) ---
 st.divider()
-st.subheader("🎲 5. Extras: Tongkrongan Vibes")
+st.subheader("Extras")
 ext1, ext2 = st.columns([1, 1])
 
 with ext1:
@@ -433,7 +433,7 @@ with ext1:
     
     if "korban_piket" in st.session_state:
         st.markdown(f"<h2 style='color: #ff4b4b; font-weight: 800; padding: 10px; border: 2px dashed #ff4b4b; border-radius: 10px; display: inline-block; animation: pulseGlow 2s infinite;'>🚨 {st.session_state.korban_piket} 🚨</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: {text_color}; font-weight: 600;'>Selamat beres-beres, Bosku! Jangan kabur lu! 🤣</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: {text_color}; font-weight: 600;'>Selamat beres-beres</p>", unsafe_allow_html=True)
         if st.button("Sudah Dikerjakan ✅", use_container_width=True):
             del st.session_state["korban_piket"]
             st.rerun()
