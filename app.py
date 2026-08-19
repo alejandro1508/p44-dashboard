@@ -305,7 +305,7 @@ st.divider()
 if "gacha_prize" in st.session_state:
     st.markdown(f"""
     <div style='background:linear-gradient(135deg, #FFD700, #F5A623); padding:40px 20px; border-radius:20px; text-align:center; color:#2c3322; animation: pulseGlow 2s infinite alternate; margin-bottom:20px; box-shadow: 0 10px 40px rgba(212, 175, 55, 0.4); border: 2px solid #fff;'>
-        <h1 style='margin:0; font-size: 36px;'>🎉 SELAMAT BANG {st.session_state.gacha_winner}! 🎉</h1>
+        <h1 style='margin:0; font-size: 36px;'>🎉 SELAMAT {st.session_state.gacha_winner}! 🎉</h1>
         <p style='font-size:18px; margin:10px 0; font-weight: 500;'>Rezeki anak nongkrong, lu berhak claim:</p>
         <div style='background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; display: inline-block;'>
             <h1 style='margin:0; font-weight:800; color:#fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); font-size: 42px;'>🚬 {st.session_state.gacha_prize}</h1>
@@ -318,7 +318,7 @@ else:
     # 1. Bikin Header Title yang Elite
     st.markdown("""
     <div style="text-align: center; margin-bottom: 25px;">
-        <h2 style="color: #D4AF37; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 15px rgba(212,175,55,0.4); margin-bottom: 0;">👑 VIP LOUNGE 👑</h2>
+        <h2 style="color: #D4AF37; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 15px rgba(212,175,55,0.4); margin-bottom: 0;">👑 LOYALTY PROGRAM 👑</h2>
         <p style="color: #819264; font-size: 15px; font-weight: 600; margin-top: 5px;">Loyalty Program Spesial Warga 4/4</p>
     </div>
     """, unsafe_allow_html=True)
