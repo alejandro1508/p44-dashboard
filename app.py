@@ -468,7 +468,7 @@ st.markdown(html_slip, unsafe_allow_html=True)
 
 # --- FITUR TONGKRONGAN EXTRAS (GACHA PIKET & SPOTIFY) ---
 st.divider()
-st.subheader("🎲 5. Extras: Tongkrongan Vibes")
+st.subheader("🎲 Extras")
 ext1, ext2 = st.columns([1, 1])
 
 with ext1:
