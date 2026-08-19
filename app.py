@@ -48,7 +48,6 @@ st.markdown(f"""
         .on-air-badge {{ background-color: #ff4b4b; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; animation: blinker 1.2s linear infinite; display: inline-block; margin-bottom: 15px; box-shadow: 0 0 15px rgba(255, 75, 75, 0.5); }}
         .offline-badge {{ background-color: #6c757d; color: white !important; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 16px; display: inline-block; margin-bottom: 15px; }}
         
-        /* KODE YANG ILANG KEMAREN GUA BALIKIN (stMetric) BUAT KOTAK BRANKAS */
         [data-testid="stForm"], [data-testid="stMetric"] {{
             background: {card_bg} !important; backdrop-filter: blur(10px) !important;
             border-radius: 15px !important; border: 1px solid {border_color} !important;
@@ -67,36 +66,31 @@ st.markdown(f"""
         @keyframes pulseGlow {{ 0% {{ text-shadow: 0 0 5px {title_color}; }} 50% {{ text-shadow: 0 0 20px {title_color}; }} 100% {{ text-shadow: 0 0 5px {title_color}; }} }}
         h3.glow-title {{ animation: pulseGlow 3s infinite alternate !important; color: {title_color} !important; text-align: center; font-weight: 800; margin-bottom: 5px; }}
         
-        /* --- TABEL UI PREMIUM FINTECH YANG UDAH PRESISI --- */
+        /* --- TABEL UI PREMIUM (TANPA GARIS TEPI SAMA SEKALI) --- */
         .table-responsive-wrapper {{ width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 20px; }}
-        .premium-table {{ width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0 10px; text-align: left; background-color: transparent; }}
-        .premium-table thead tr {{ color: {sec_text}; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; font-weight: 600; }}
+        .premium-table {{ width: 100%; min-width: 950px; border-collapse: separate; border-spacing: 0 12px; text-align: left; background-color: transparent; }}
+        .premium-table thead tr {{ color: {sec_text}; text-transform: uppercase; font-size: 12px; letter-spacing: 1.5px; font-weight: 700; }}
         .premium-table th {{ padding: 10px 20px; border: none; }}
-        .premium-table tbody tr {{ box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.2s ease; }}
-        .premium-table tbody tr:hover {{ transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }}
-        .premium-table td {{ padding: 15px 20px; background-color: {card_bg}; vertical-align: middle; border-top: 1px solid {border_color}; border-bottom: 1px solid {border_color}; }}
-        .premium-table td:first-child {{ border-left: 1px solid {border_color}; border-top-left-radius: 12px; border-bottom-left-radius: 12px; font-size: 16px; }}
+        .premium-table tbody tr {{ box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; }}
+        .premium-table tbody tr:hover {{ transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.12); }}
         
-        /* Perbaikan Kolom TOTAL HAK CAIR Biar Mulus 100% tanpa celah putih */
+        /* Hilangin semua border di td, cuma pake background-color */
+        .premium-table td {{ padding: 16px 20px; background-color: {card_bg}; vertical-align: middle; border: none !important; }}
+        .premium-table td:first-child {{ border-top-left-radius: 14px; border-bottom-left-radius: 14px; font-size: 17px; font-weight: 600; }}
+        
         .premium-table td.col-cair {{ 
             background: linear-gradient(135deg, {btn_bg}, {btn_hover}); 
             color: #ffffff !important; 
-            font-size: 18px !important; 
+            font-size: 19px !important; 
             font-weight: 800 !important; 
             text-shadow: 1px 1px 3px rgba(0,0,0,0.3); 
-            border: none; 
-            border-top-right-radius: 12px; 
-            border-bottom-right-radius: 12px; 
+            border: none !important; 
+            border-top-right-radius: 14px; 
+            border-bottom-right-radius: 14px; 
         }}
         
-        .badge-base {{ background: rgba(128,128,128,0.15); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid {border_color}; }}
+        .badge-base {{ background: rgba(128,128,128,0.15); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid rgba(128,128,128,0.2); }}
         .badge-bonus {{ background: rgba(212, 175, 55, 0.15); color: #D4AF37 !important; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 14px; border: 1px solid rgba(212, 175, 55, 0.3); }}
-        
-        /* Rank Colors */
-        .rank-mythic {{ color: #FF00FF; font-weight: 900; text-shadow: 0 0 8px rgba(255,0,255,0.6); font-size: 15px; }}
-        .rank-legend {{ color: #FFD700; font-weight: 800; font-size: 15px; }}
-        .rank-epic {{ color: #00FF00; font-weight: 700; font-size: 14px; }}
-        .rank-elite {{ font-weight: 600; font-size: 14px; }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -114,13 +108,19 @@ TAMU_VIP = ["Fauzi", "Hakim", "Rayhan", "Rusdi", "Naufal"]
 TARGET_CUAN = 1500000
 TARGET_POIN_VIP = 7
 
-# --- SISTEM PANGKAT ---
+# --- SISTEM PANGKAT (DENGAN DESAIN BADGE PREMIUM) ---
 def get_rank(hours):
-    if hours >= 9: return "<span class='rank-mythic'>🐉 Mythical Glory</span>"
-    elif hours >= 5: return "<span class='rank-legend'>🦁 Legend</span>"
-    elif hours >= 1: return "<span class='rank-epic'>🦏 Epic</span>"
-    elif hours > 0: return "<span class='rank-elite'>🗡️ Elite</span>"
-    else: return "🗿 Warrior"
+    badge_style = "display: inline-block; padding: 6px 16px; border-radius: 50px; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"
+    if hours >= 9:
+        return f"<span style='{badge_style} background: linear-gradient(135deg, #8A2BE2 0%, #FF1493 100%); color: white; border: 1px solid #FF69B4;'>🐉 MYTHICAL GLORY</span>"
+    elif hours >= 5:
+        return f"<span style='{badge_style} background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #4A3000; border: 1px solid #FFD700;'>🦁 LEGEND</span>"
+    elif hours >= 1:
+        return f"<span style='{badge_style} background: linear-gradient(135deg, #32CD32 0%, #008000 100%); color: white; border: 1px solid #90EE90;'>🦏 EPIC</span>"
+    elif hours > 0:
+        return f"<span style='{badge_style} background: linear-gradient(135deg, #1E90FF 0%, #0000CD 100%); color: white; border: 1px solid #87CEFA;'>🗡️ ELITE</span>"
+    else:
+        return f"<span style='{badge_style} background: linear-gradient(135deg, #A9A9A9 0%, #696969 100%); color: white; border: 1px solid #D3D3D3;'>🗿 WARRIOR</span>"
 
 def get_safe_data(conn, sheet_name, cols):
     try: return conn.read(worksheet=sheet_name, usecols=cols, ttl=5).dropna(how="all")
@@ -379,7 +379,7 @@ mvp_points = points_map.get(mvp_name, 0)
 
 c1, c2 = st.columns([1, 2])
 with c1: 
-    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points:.1f} Jam Live )*\n\n🔥 Rank: {get_rank(mvp_points)}", unsafe_allow_html=True)
+    st.markdown(f"### 👑 MVP Tim\n**{mvp_name}**\n*( {mvp_points:.1f} Jam Live )*\n<br>{get_rank(mvp_points)}", unsafe_allow_html=True)
 with c2: st.bar_chart(pd.DataFrame(list(points_map.items()), columns=["Anggota", "Total Jam"]).set_index("Anggota"), color=btn_bg)
 
 st.divider()
@@ -409,8 +409,7 @@ for m in MEMBERS:
     earned_base = base_per_person if pts > 0 else 0
     earned_bonus = pts * val_per_point
     is_mvp = " 👑" if m == mvp_name and pts > 0 else ""
-    # PENGGUNAAN CLASS col-cair DI-UBAH BIAR BACKGROUNDNYA RAPIH DAN MENEMPEL
-    table_html += f"<tr><td><strong>{m}{is_mvp}</strong></td><td>{get_rank(pts)}</td><td>{pts:.1f} Jam</td><td><span class='badge-base'>Rp {earned_base:,.0f}</span></td><td><span class='badge-bonus'>+ Rp {earned_bonus:,.0f}</span></td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
+    table_html += f"<tr><td><strong>{m}{is_mvp}</strong></td><td>{get_rank(pts)}</td><td style='font-weight: 600;'>{pts:.1f} Jam</td><td><span class='badge-base'>Rp {earned_base:,.0f}</span></td><td><span class='badge-bonus'>+ Rp {earned_bonus:,.0f}</span></td><td class='col-cair'>Rp {(earned_base + earned_bonus):,.0f}</td></tr>"
 table_html += "</tbody></table></div>"
 st.markdown(table_html, unsafe_allow_html=True)
 
